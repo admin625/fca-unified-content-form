@@ -264,6 +264,64 @@
             font-size: 16px;
             line-height: 1;
         }
+
+        /* Studio Owner Instructor Tagging */
+        .instructor-tagging {
+            background: #eff6ff;
+            border: 2px solid #2563eb;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .instructor-tagging.show {
+            display: block;
+        }
+
+        .instructor-tagging h4 {
+            color: #1e40af;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .instructor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .instructor-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .instructor-checkbox:hover {
+            border-color: #2563eb;
+            background: #f8fafc;
+        }
+
+        .instructor-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #2563eb;
+        }
+
+        .instructor-checkbox label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            color: #1e293b;
+        }
         
         /* NUMBER SELECTOR */
         .number-selector {
@@ -587,6 +645,7 @@
 
             <!-- Hidden fields for tier data -->
             <input type="hidden" name="user_tier" id="user_tier">
+            <input type="hidden" name="user_role" id="user_role">
             <input type="hidden" name="studio_id" id="studio_id">
             <input type="hidden" name="studio_name" id="studio_name">
             <input type="hidden" name="posts_remaining" id="posts_remaining">
@@ -753,7 +812,7 @@
                     <div class="helper-text">Helps AI understand your existing content style</div>
                 </div>
 
-                <!-- SECTION 3.5: PHOTO UPLOAD (Pro/Premium/Studio/Trial only) -->
+                <!-- SECTION 3.5: PHOTO UPLOAD (Pro/Premium/Studio Owner/Trial only) -->
                 <div id="photo-section" class="form-group hidden">
                     <div class="section-header">Your Photos (Optional)</div>
                     
@@ -766,6 +825,14 @@
                         </div>
                         <div id="photo-preview-grid" class="photo-preview-grid"></div>
                     </div>
+                    
+                    <!-- Studio Owner Instructor Tagging -->
+                    <div class="instructor-tagging" id="instructor-tagging">
+                        <h4>🏢 Tag photos for your instructors:</h4>
+                        <div class="instructor-list" id="instructor-list"></div>
+                        <div class="helper-text" style="margin-top: 10px;">Select which instructors can use these photos in their content</div>
+                    </div>
+                    
                     <div class="helper-text">Upload 5-20 photos. AI will match them to your posts automatically.</div>
                 </div>
                 
@@ -932,6 +999,7 @@
         
         let userTierData = null;
         let uploadedPhotos = [];
+        let studioInstructors = [];
         
         // localStorage key - store per email
         const getStorageKey = (email) => `fca_form_data_${email}`;
@@ -1176,7 +1244,56 @@
         });
 
         async function checkUserTier(email) {
-            // Check 1: Trial user?
+            // Check 1: Studio Owner?
+            const { data: studioOwnerData } = await supabaseClient
+                .from('studio_accounts')
+                .select('*')
+                .eq('owner_email', email)
+                .eq('subscription_status', 'active')
+                .single();
+
+            if (studioOwnerData) {
+                // Fetch instructors for this studio
+                const { data: instructorsData } = await supabaseClient
+                    .from('studio_instructors')
+                    .select('*')
+                    .eq('studio_id', studioOwnerData.id)
+                    .eq('status', 'active');
+
+                studioInstructors = instructorsData || [];
+                
+                userTierData = {
+                    tier: studioOwnerData.plan_type || 'pro',
+                    role: 'studio_owner',
+                    email: email,
+                    studio_id: studioOwnerData.id,
+                    studio_name: studioOwnerData.studio_name
+                };
+
+                const hasSavedData = loadFormData(email);
+
+                tierInfo.className = 'tier-info show';
+                tierInfo.innerHTML = `
+                    <h3>🏢 Studio Owner</h3>
+                    <p><strong>${userTierData.studio_name}</strong></p>
+                    <p style="font-size: 13px; margin-top: 8px;">✨ Upload photos and tag them for your ${studioInstructors.length} instructor(s)</p>
+                    ${hasSavedData ? '<p style="margin-top: 8px; font-size: 12px; color: #0369a1;">📝 Loaded your previous settings</p>' : ''}
+                `;
+
+                document.getElementById('user_tier').value = userTierData.tier;
+                document.getElementById('user_role').value = 'studio_owner';
+                document.getElementById('studio_id').value = userTierData.studio_id;
+                document.getElementById('studio_name').value = userTierData.studio_name;
+                
+                photoSection.classList.remove('hidden');
+                renderInstructorList();
+                
+                mainForm.style.display = 'block';
+                enableAutoSave(email);
+                return;
+            }
+
+            // Check 2: Trial user?
             const { data: trialData } = await supabaseClient
                 .from('trials')
                 .select('*')
@@ -1212,12 +1329,12 @@
 
                 userTierData = {
                     tier: 'trial',
+                    role: 'trial_user',
                     email: email,
                     posts_remaining: postsRemaining,
                     trial_end: trialEnd.toLocaleDateString()
                 };
 
-                // Check if there's saved data
                 const hasSavedData = loadFormData(email);
                 
                 tierInfo.className = 'tier-info trial show';
@@ -1230,16 +1347,16 @@
                 `;
 
                 document.getElementById('user_tier').value = 'trial';
+                document.getElementById('user_role').value = 'trial_user';
                 document.getElementById('posts_remaining').value = postsRemaining;
-                photoSection.classList.remove('hidden'); // Show photo upload for trial
+                photoSection.classList.remove('hidden');
                 mainForm.style.display = 'block';
                 
-                // Enable auto-save
                 enableAutoSave(email);
                 return;
             }
 
-            // Check 2: Studio instructor?
+            // Check 3: Studio instructor?
             const { data: instructorData } = await supabaseClient
                 .from('studio_instructors')
                 .select('*, studio_accounts(*)')
@@ -1250,12 +1367,12 @@
             if (instructorData) {
                 userTierData = {
                     tier: 'studio_instructor',
+                    role: 'studio_instructor',
                     email: email,
                     studio_id: instructorData.studio_id,
                     studio_name: instructorData.studio_accounts.studio_name
                 };
 
-                // Check if there's saved data
                 const hasSavedData = loadFormData(email);
 
                 tierInfo.className = 'tier-info show';
@@ -1267,17 +1384,17 @@
                 `;
 
                 document.getElementById('user_tier').value = 'studio_instructor';
+                document.getElementById('user_role').value = 'studio_instructor';
                 document.getElementById('studio_id').value = userTierData.studio_id;
                 document.getElementById('studio_name').value = userTierData.studio_name;
-                photoSection.classList.add('hidden'); // Studio instructors don't upload, they use studio photos
+                photoSection.classList.add('hidden'); // Studio instructors don't upload
                 mainForm.style.display = 'block';
                 
-                // Enable auto-save
                 enableAutoSave(email);
                 return;
             }
 
-            // Check 3: Paid subscriber?
+            // Check 4: Paid subscriber?
             const { data: clientData } = await supabaseClient
                 .from('clients')
                 .select('*')
@@ -1285,10 +1402,11 @@
                 .single();
 
             if (clientData && clientData.subscription_status === 'active') {
-                const tier = clientData.plan_type || 'basic'; // basic, pro, premium
+                const tier = clientData.plan_type || 'basic';
                 
                 userTierData = {
                     tier: tier,
+                    role: 'regular_client',
                     email: email
                 };
 
@@ -1300,7 +1418,6 @@
 
                 const tierInfo_config = tierLabels[tier] || tierLabels.basic;
                 
-                // Check if there's saved data
                 const hasSavedData = loadFormData(email);
 
                 tierInfo.className = `tier-info show`;
@@ -1312,16 +1429,15 @@
                 `;
 
                 document.getElementById('user_tier').value = tier;
+                document.getElementById('user_role').value = 'regular_client';
                 
                 if (tier === 'pro' || tier === 'premium') {
-                    photoSection.classList.remove('hidden'); // Show photo upload
+                    photoSection.classList.remove('hidden');
                 } else {
-                    photoSection.classList.add('hidden'); // Hide for basic
+                    photoSection.classList.add('hidden');
                 }
 
                 mainForm.style.display = 'block';
-                
-                // Enable auto-save
                 enableAutoSave(email);
                 return;
             }
@@ -1333,6 +1449,34 @@
                 <p>We couldn't find an account with this email.</p>
                 <p style="margin-top: 10px;"><a href="https://fiorsaoirse.com/signup" style="color: #0369a1; font-weight: 600;">Start Free Trial →</a></p>
             `;
+        }
+
+        // Render instructor tagging list for studio owners
+        function renderInstructorList() {
+            const instructorTagging = document.getElementById('instructor-tagging');
+            const instructorList = document.getElementById('instructor-list');
+            
+            if (userTierData.role !== 'studio_owner' || studioInstructors.length === 0) {
+                instructorTagging.classList.remove('show');
+                return;
+            }
+
+            instructorList.innerHTML = studioInstructors.map((instructor, index) => `
+                <div class="instructor-checkbox">
+                    <input type="checkbox" id="instructor-${index}" value="${instructor.instructor_email}" class="instructor-tag-checkbox">
+                    <label for="instructor-${index}">${instructor.instructor_name || instructor.instructor_email}</label>
+                </div>
+            `).join('');
+
+            instructorTagging.classList.add('show');
+        }
+
+        // Get selected instructors for photo tagging
+        function getSelectedInstructors() {
+            if (userTierData.role !== 'studio_owner') return [];
+            
+            const checkboxes = document.querySelectorAll('.instructor-tag-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
         }
 
         // Photo upload handling
@@ -1457,7 +1601,7 @@
                 const platformData = {
                     name: platform,
                     postCount: postCount,
-                    includeImages: userTierData.tier !== 'basic' // Images for all except basic
+                    includeImages: userTierData.tier !== 'basic'
                 };
                 
                 platformsArray.push(platformData);
@@ -1468,28 +1612,85 @@
                 return;
             }
 
-            // Upload photos to Supabase Storage if any
+            // Upload photos based on user role
             let photoUrls = [];
-            if (uploadedPhotos.length > 0 && (userTierData.tier === 'pro' || userTierData.tier === 'premium' || userTierData.tier === 'trial')) {
+            let photoData = null;
+            
+            if (uploadedPhotos.length > 0) {
                 document.getElementById('loading-overlay').classList.add('show');
                 
-                for (const photo of uploadedPhotos) {
-                    try {
-                        const fileName = `${userTierData.email}/${Date.now()}-${photo.file.name}`;
-                        const { data, error } = await supabaseClient.storage
-                            .from('client-photos')
-                            .upload(fileName, photo.file);
-                        
-                        if (error) throw error;
-                        
-                        const { data: urlData } = supabaseClient.storage
-                            .from('client-photos')
-                            .getPublicUrl(fileName);
-                        
-                        photoUrls.push(urlData.publicUrl);
-                    } catch (error) {
-                        console.error('Photo upload error:', error);
+                if (userTierData.role === 'studio_owner') {
+                    // Studio Owner: Upload to studio_photos with instructor tagging
+                    const taggedInstructors = getSelectedInstructors();
+                    
+                    if (taggedInstructors.length === 0) {
+                        alert('Please select at least one instructor to tag these photos for');
+                        document.getElementById('loading-overlay').classList.remove('show');
+                        return;
                     }
+                    
+                    for (const photo of uploadedPhotos) {
+                        try {
+                            const fileName = `studio-${userTierData.studio_id}/${Date.now()}-${photo.file.name}`;
+                            const { data, error } = await supabaseClient.storage
+                                .from('studio-photos')
+                                .upload(fileName, photo.file);
+                            
+                            if (error) throw error;
+                            
+                            const { data: urlData } = supabaseClient.storage
+                                .from('studio-photos')
+                                .getPublicUrl(fileName);
+                            
+                            // Insert into studio_photos table
+                            await supabaseClient
+                                .from('studio_photos')
+                                .insert({
+                                    studio_id: userTierData.studio_id,
+                                    storage_path: fileName,
+                                    storage_url: urlData.publicUrl,
+                                    instructor_emails: taggedInstructors,
+                                    uploaded_by: userTierData.email
+                                });
+                            
+                            photoUrls.push(urlData.publicUrl);
+                        } catch (error) {
+                            console.error('Studio photo upload error:', error);
+                        }
+                    }
+                    
+                    photoData = {
+                        type: 'studio_photos',
+                        studio_id: userTierData.studio_id,
+                        tagged_instructors: taggedInstructors,
+                        photo_urls: photoUrls
+                    };
+                    
+                } else if (userTierData.role === 'regular_client' || userTierData.role === 'trial_user') {
+                    // Regular client or trial: Upload to client_images
+                    for (const photo of uploadedPhotos) {
+                        try {
+                            const fileName = `${userTierData.email}/${Date.now()}-${photo.file.name}`;
+                            const { data, error } = await supabaseClient.storage
+                                .from('client-photos')
+                                .upload(fileName, photo.file);
+                            
+                            if (error) throw error;
+                            
+                            const { data: urlData } = supabaseClient.storage
+                                .from('client-photos')
+                                .getPublicUrl(fileName);
+                            
+                            photoUrls.push(urlData.publicUrl);
+                        } catch (error) {
+                            console.error('Photo upload error:', error);
+                        }
+                    }
+                    
+                    photoData = {
+                        type: 'client_images',
+                        photo_urls: photoUrls
+                    };
                 }
             }
 
@@ -1503,6 +1704,7 @@
                 // User account info
                 email: userTierData.email,
                 user_tier: userTierData.tier,
+                user_role: userTierData.role,
                 studio_id: userTierData.studio_id || null,
                 studio_name: userTierData.studio_name || null,
                 posts_remaining: userTierData.posts_remaining || null,
@@ -1526,7 +1728,7 @@
                 platforms: platformsArray,
                 
                 // Photos
-                uploaded_photo_urls: photoUrls
+                photo_data: photoData
             };
             
             console.log('Submitting data:', data);
