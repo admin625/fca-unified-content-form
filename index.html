@@ -3,532 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCA Content Generator - Enhanced</title>
+    <title>FCA Content Generator</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-         
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h1 { color: #1e293b; margin-bottom: 10px; font-size: 32px; font-weight: 700; }
+        .subtitle { color: #64748b; margin-bottom: 30px; font-size: 16px; }
+        .tier-info { background: #f0f9ff; border: 2px solid #0ea5e9; border-radius: 12px; padding: 15px; margin-bottom: 25px; display: none; }
+        .tier-info.show { display: block; }
+        .tier-info h3 { color: #0369a1; font-size: 15px; margin-bottom: 8px; }
+        .tier-info p { color: #0c4a6e; font-size: 14px; line-height: 1.5; }
+        .section-header { background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); color: white; padding: 14px 20px; margin: 30px -40px 25px -40px; font-weight: 600; font-size: 15px; text-transform: uppercase; letter-spacing: 0.8px; }
+        .form-group { margin-bottom: 25px; }
+        .form-group.hidden { display: none; }
+        label { display: block; margin-bottom: 8px; color: #1e293b; font-weight: 600; font-size: 14px; }
+        .required { color: #f97316; margin-left: 3px; }
+        .helper-text { font-size: 13px; color: #64748b; font-weight: 400; margin-top: 6px; font-style: italic; }
+        input[type="text"], input[type="email"], input[type="url"], select, textarea { width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; font-family: inherit; background: white; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        textarea { resize: vertical; min-height: 80px; }
         
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
+        .instructor-management { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 25px; display: none; }
+        .instructor-management.show { display: block; }
+        .instructor-list { margin-bottom: 15px; }
+        .instructor-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: white; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; }
+        .instructor-name { font-weight: 600; color: #1e293b; font-size: 15px; }
+        .instructor-email { color: #64748b; font-size: 13px; margin-top: 2px; }
+        .remove-instructor-btn { padding: 6px 12px; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .add-instructor-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
+        .add-instructor-btn { padding: 12px 20px; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; white-space: nowrap; }
         
-        h1 {
-            color: #1e293b;
-            margin-bottom: 10px;
-            font-size: 32px;
-            font-weight: 700;
-        }
+        .photo-upload-section { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; margin-bottom: 20px; }
+        .photo-upload-section:hover { border-color: #2563eb; background: #eff6ff; }
+        .photo-cards-grid { display: grid; gap: 20px; margin-top: 20px; }
+        .photo-card { background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; position: relative; }
+        .photo-card-header { display: flex; gap: 15px; margin-bottom: 15px; }
+        .photo-thumbnail { width: 120px; height: 120px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+        .photo-card-remove { position: absolute; top: 10px; right: 10px; background: rgba(220, 38, 38, 0.9); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 18px; }
+        .instructor-checkboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 15px; }
+        .instructor-checkbox-item { display: flex; align-items: center; padding: 8px 12px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .instructor-checkbox-item:hover { border-color: #2563eb; background: #eff6ff; }
+        .instructor-checkbox-item input[type="checkbox"] { width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: #2563eb; }
+        .keywords-input { width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
         
-        .subtitle {
-            color: #64748b;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-
-        .tier-info {
-            background: #f0f9ff;
-            border: 2px solid #0ea5e9;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 25px;
-            display: none;
-        }
-
-        .tier-info.show {
-            display: block;
-        }
-
-        .tier-info h3 {
-            color: #0369a1;
-            font-size: 15px;
-            margin-bottom: 8px;
-        }
-
-        .tier-info p {
-            color: #0c4a6e;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .tier-info.expired {
-            background: #fef2f2;
-            border-color: #ef4444;
-        }
-
-        .tier-info.expired h3 {
-            color: #b91c1c;
-        }
-
-        .tier-info.expired p {
-            color: #991b1b;
-        }
+        .checkbox-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
+        .checkbox-item { display: flex; align-items: center; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; background: white; }
+        .checkbox-item:hover { border-color: #2563eb; background: #eff6ff; }
+        .checkbox-item input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; cursor: pointer; accent-color: #2563eb; }
         
-        .section-header {
-            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-            color: white;
-            padding: 14px 20px;
-            margin: 30px -40px 25px -40px;
-            font-weight: 600;
-            font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
-        }
+        .number-selector { display: flex; gap: 8px; flex-wrap: wrap; }
+        .number-btn { width: 50px; height: 50px; border: 2px solid #e2e8f0; border-radius: 10px; background: white; font-size: 18px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+        .number-btn:hover { border-color: #2563eb; background: #eff6ff; }
+        .number-btn.selected { background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); border-color: #2563eb; color: white; }
         
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group.hidden {
-            display: none;
-        }
+        .platform-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; background: #f8fafc; }
+        .platform-header { display: flex; align-items: center; margin-bottom: 15px; }
+        .platform-header input[type="checkbox"] { width: 24px; height: 24px; margin-right: 12px; cursor: pointer; accent-color: #2563eb; }
+        .platform-header label { font-size: 18px; font-weight: 600; cursor: pointer; margin: 0; flex-grow: 1; }
+        .platform-controls { margin-left: 36px; display: none; }
+        .platform-controls.active { display: block; }
         
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #1e293b;
-            font-weight: 600;
-            font-size: 14px;
-        }
+        .submit-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 30px; }
+        .submit-btn:disabled { background: #94a3b8; cursor: not-allowed; }
         
-        .required {
-            color: #f97316;
-            margin-left: 3px;
-        }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .loading-overlay.show { display: flex; }
+        .loading-box { background: white; padding: 40px; border-radius: 16px; text-align: center; }
+        .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #2563eb; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .helper-text {
-            font-size: 13px;
-            color: #64748b;
-            font-weight: 400;
-            margin-top: 6px;
-            font-style: italic;
-        }
-        
-        input[type="text"],
-        input[type="email"],
-        input[type="url"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            font-family: inherit;
-            background: white;
-        }
-        
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        /* Instructor Management */
-        .instructor-management {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            display: none;
-        }
-
-        .instructor-management.show {
-            display: block;
-        }
-
-        .instructor-list {
-            margin-bottom: 15px;
-        }
-
-        .instructor-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .instructor-info {
-            flex-grow: 1;
-        }
-
-        .instructor-name {
-            font-weight: 600;
-            color: #1e293b;
-            font-size: 15px;
-        }
-
-        .instructor-email {
-            color: #64748b;
-            font-size: 13px;
-            margin-top: 2px;
-        }
-
-        .remove-instructor-btn {
-            padding: 6px 12px;
-            background: #fee;
-            color: #dc2626;
-            border: 1px solid #fca5a5;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .remove-instructor-btn:hover {
-            background: #fecaca;
-        }
-
-        .add-instructor-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 10px;
-            align-items: end;
-        }
-
-        .add-instructor-btn {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .add-instructor-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-        }
-
-        /* Enhanced Photo Upload */
-        .photo-upload-section {
-            background: #f8fafc;
-            border: 2px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-        }
-
-        .photo-upload-section:hover {
-            border-color: #2563eb;
-            background: #eff6ff;
-        }
-
-        .photo-cards-grid {
-            display: grid;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .photo-card {
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 15px;
-            position: relative;
-        }
-
-        .photo-card-header {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .photo-thumbnail {
-            width: 120px;
-            height: 120px;
-            border-radius: 8px;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
-        .photo-card-remove {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(220, 38, 38, 0.9);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            font-size: 18px;
-            line-height: 1;
-            font-weight: bold;
-        }
-
-        .photo-card-remove:hover {
-            background: #dc2626;
-        }
-
-        .instructor-checkboxes {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .instructor-checkbox-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .instructor-checkbox-item:hover {
-            border-color: #2563eb;
-            background: #eff6ff;
-        }
-
-        .instructor-checkbox-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-right: 8px;
-            cursor: pointer;
-            accent-color: #2563eb;
-        }
-
-        .instructor-checkbox-item label {
-            margin: 0;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .keywords-input {
-            width: 100%;
-            padding: 10px 14px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .keywords-input:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .checkbox-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 14px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: white;
-        }
-        
-        .checkbox-item:hover {
-            border-color: #2563eb;
-            background: #eff6ff;
-            transform: translateY(-1px);
-        }
-        
-        .checkbox-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            cursor: pointer;
-            accent-color: #2563eb;
-        }
-        
-        .checkbox-item label {
-            margin: 0;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 14px;
-        }
-        
-        .submit-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 30px;
-            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.3);
-            letter-spacing: 0.3px;
-        }
-        
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 28px rgba(249, 115, 22, 0.4);
-        }
-        
-        .submit-btn:disabled {
-            background: #94a3b8;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .success-banner {
-            display: none;
-            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-        }
-        
-        .success-banner.show {
-            display: block;
-            animation: slideDown 0.5s ease;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .success-banner h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .success-banner p {
-            font-size: 16px;
-            opacity: 0.95;
-        }
-
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .loading-overlay.show {
-            display: flex;
-        }
-        
-        .loading-box {
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .spinner {
-            border: 4px solid #e2e8f0;
-            border-top: 4px solid #2563eb;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         @media (max-width: 600px) {
-            .container {
-                padding: 30px 20px;
-            }
-            
-            .section-header {
-                margin-left: -20px;
-                margin-right: -20px;
-            }
-
-            .add-instructor-form {
-                grid-template-columns: 1fr;
-            }
-
-            .instructor-checkboxes {
-                grid-template-columns: 1fr;
-            }
+            .container { padding: 30px 20px; }
+            .section-header { margin-left: -20px; margin-right: -20px; }
+            .add-instructor-form { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-box">
-            <div class="spinner"></div>
-            <h2 style="color: #1e293b;">Processing...</h2>
-            <p style="color: #64748b; margin-top: 10px;">Please wait</p>
-        </div>
+        <div class="loading-box"><div class="spinner"></div><h2 style="color: #1e293b;">Processing...</h2></div>
     </div>
 
     <div class="container">
-        <div class="success-banner" id="success-banner">
-            <h2>✅ Success!</h2>
-            <p>Your content request has been submitted.</p>
-        </div>
-
         <h1>🎯 FCA Content Generator</h1>
         <p class="subtitle">AI-powered social media content for fitness professionals</p>
         
@@ -537,57 +95,36 @@
             
             <div class="form-group">
                 <label>Email Address: <span class="required">*</span></label>
-                <input type="email" name="email" id="email" required placeholder="your@email.com" autocomplete="email">
-                <div class="helper-text">Enter your email to load your account settings</div>
+                <input type="email" name="email" id="email" required placeholder="your@email.com">
             </div>
 
             <div class="tier-info" id="tier-info"></div>
-
-            <input type="hidden" name="user_tier" id="user_tier">
-            <input type="hidden" name="user_role" id="user_role">
-            <input type="hidden" name="studio_id" id="studio_id">
-            <input type="hidden" name="studio_name" id="studio_name">
+            <input type="hidden" id="user_tier">
+            <input type="hidden" id="user_role">
+            <input type="hidden" id="studio_id">
             
-            <!-- Instructor Management (Studio Owners Only) -->
             <div class="instructor-management" id="instructor-management">
-                <div class="section-header" style="margin: 0 0 20px 0;">Manage Instructors</div>
-                
+                <h3 style="margin-bottom: 15px; color: #1e293b;">Manage Instructors</h3>
                 <div class="instructor-list" id="instructor-list"></div>
-
                 <div class="add-instructor-form">
-                    <div class="form-group" style="margin: 0;">
-                        <label>Instructor Name:</label>
-                        <input type="text" id="new-instructor-name" placeholder="e.g., Sarah Johnson">
-                    </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label>Instructor Email:</label>
-                        <input type="email" id="new-instructor-email" placeholder="e.g., sarah@studio.com">
-                    </div>
-                    <button type="button" class="add-instructor-btn" id="add-instructor-btn">+ Add Instructor</button>
+                    <div><label style="font-size: 13px;">Name:</label><input type="text" id="new-instructor-name" placeholder="Sarah Johnson"></div>
+                    <div><label style="font-size: 13px;">Email:</label><input type="email" id="new-instructor-email" placeholder="sarah@studio.com"></div>
+                    <button type="button" class="add-instructor-btn" id="add-instructor-btn">+ Add</button>
                 </div>
             </div>
             
             <div id="main-form" style="display: none;">
                 
-                <!-- Photo Upload Section (Studio Owners/Pro/Premium/Trial) -->
                 <div id="photo-section" class="form-group hidden">
                     <div class="section-header">Upload & Tag Photos</div>
-                    
                     <div class="photo-upload-section" id="photo-upload-area">
                         <input type="file" id="photo-input" accept="image/*" multiple style="display: none;">
-                        <div id="upload-prompt">
-                            <p style="font-size: 18px; margin-bottom: 10px;">📸 Upload Photos</p>
-                            <p style="font-size: 14px; color: #64748b;">Click to select or drag & drop</p>
-                            <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">JPG, PNG (max 5MB each)</p>
-                        </div>
+                        <p style="font-size: 18px;">📸 Upload Photos</p>
+                        <p style="font-size: 14px; color: #64748b; margin-top: 8px;">Click to select</p>
                     </div>
-
                     <div class="photo-cards-grid" id="photo-cards-grid"></div>
-                    
-                    <div class="helper-text">Tag each photo for specific instructors and add keywords for AI matching</div>
                 </div>
 
-                <!-- Rest of form (abbreviated for length - same as before) -->
                 <div class="section-header">Your Brand Identity</div>
                 
                 <div class="form-group">
@@ -599,9 +136,170 @@
                     </select>
                 </div>
 
-                <!-- Add all other form fields here - keeping minimal for file size -->
+                <div class="form-group">
+                    <label>My coaching/brand style is: <span class="required">*</span></label>
+                    <select name="brand_voice" required>
+                        <option value="">Select one...</option>
+                        <option value="motivational">Motivational & Inspiring</option>
+                        <option value="tough_love">Tough Love & No Excuses</option>
+                        <option value="educational">Educational & Science-Based</option>
+                        <option value="fun">Fun & Energetic</option>
+                        <option value="mindful">Calm & Mindful</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>What makes you/your business different?</label>
+                    <textarea name="unique_value" rows="3" placeholder="Example: I specialize in helping busy moms..."></textarea>
+                    <div class="helper-text">2-3 sentences about your unique approach</div>
+                </div>
+
+                <div class="form-group">
+                    <label>My main goal with social media is: <span class="required">*</span></label>
+                    <select name="primary_goal" required>
+                        <option value="">Select one...</option>
+                        <option value="build_brand">Build my personal brand</option>
+                        <option value="get_clients">Attract more clients</option>
+                        <option value="inspire">Inspire my community</option>
+                        <option value="establish_expert">Establish as expert</option>
+                        <option value="memberships">Increase memberships</option>
+                        <option value="retention">Improve retention</option>
+                        <option value="fill_classes">Fill classes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Signature saying or catchphrase (Optional):</label>
+                    <input type="text" name="signature_style" placeholder='e.g., "No excuses, just results"'>
+                </div>
+
+                <div class="section-header">Target Audience & Focus</div>
+
+                <div class="form-group">
+                    <label>Target Audience: <span class="required">*</span></label>
+                    <input type="text" name="target_audience" required placeholder="e.g., Women 25-45, Busy professionals">
+                </div>
+
+                <div class="form-group">
+                    <label>Fitness Focus: <span class="required">*</span></label>
+                    <input type="text" name="fitness_focus" required placeholder="e.g., HIIT, Yoga, Strength Training">
+                </div>
+
+                <div class="form-group">
+                    <label>Primary Call-to-Action: <span class="required">*</span></label>
+                    <select name="cta_type" required id="cta_type">
+                        <option value="">What do you want audience to do?</option>
+                        <option value="book_consultation">Book a free consultation</option>
+                        <option value="sign_up_trial">Sign up for trial class</option>
+                        <option value="dm_details">DM for details</option>
+                        <option value="link_bio">Click link in bio</option>
+                        <option value="comment">Comment below</option>
+                        <option value="visit_website">Visit my website</option>
+                        <option value="tag_friend">Tag a friend</option>
+                        <option value="custom">Custom CTA</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="custom-cta-group" style="display: none;">
+                    <label>Custom Call-to-Action:</label>
+                    <input type="text" name="custom_cta" placeholder="Enter your custom CTA">
+                </div>
+
+                <div class="section-header">Content Preferences</div>
+
+                <div class="form-group">
+                    <label>Content themes (select all that apply):</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item"><input type="checkbox" name="content_themes" value="workout_tips" id="workout"><label for="workout">Workout Tips</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="content_themes" value="nutrition" id="nutrition"><label for="nutrition">Nutrition</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="content_themes" value="motivation" id="motivation"><label for="motivation">Motivation</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="content_themes" value="transformation" id="transformation"><label for="transformation">Transformations</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="content_themes" value="lifestyle" id="lifestyle"><label for="lifestyle">Lifestyle</label></div>
+                        <div class="checkbox-item"><input type="checkbox" name="content_themes" value="technique" id="technique"><label for="technique">Technique</label></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Caption style preference:</label>
+                    <select name="caption_style">
+                        <option value="mixed">Mixed (variety)</option>
+                        <option value="short_punchy">Short & punchy</option>
+                        <option value="medium">Medium length</option>
+                        <option value="long_storytelling">Longer storytelling</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Hashtag preference:</label>
+                    <select name="hashtag_preference">
+                        <option value="moderate">Moderate (5-10)</option>
+                        <option value="minimal">Minimal (3-5)</option>
+                        <option value="maximum">Maximum (15-20)</option>
+                        <option value="none">No hashtags</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Your go-to hashtags (Optional):</label>
+                    <input type="text" name="custom_hashtags" placeholder="e.g., #YourBrand #YourCity">
+                    <div class="helper-text">These will be included in every post</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Topics to AVOID (Optional):</label>
+                    <textarea name="avoid_topics" rows="2" placeholder="e.g., Weight loss focus, political topics"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Current promotions or events? (Optional):</label>
+                    <textarea name="promotions" rows="2" placeholder="e.g., New Year special: 50% off"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Link to Instagram/social (Optional):</label>
+                    <input type="url" name="social_profile" placeholder="https://instagram.com/yourusername">
+                    <div class="helper-text">Helps AI understand your content style</div>
+                </div>
+
+                <div class="section-header">Social Media Platforms</div>
+
+                <div class="platform-card" id="instagram-card">
+                    <div class="platform-header">
+                        <input type="checkbox" id="instagram-enabled" onchange="togglePlatform('instagram')">
+                        <label for="instagram-enabled">📸 Instagram</label>
+                    </div>
+                    <div class="platform-controls" id="instagram-controls">
+                        <label>Number of Posts:</label>
+                        <div class="number-selector" id="instagram-selector">
+                            <div class="number-btn" data-value="1">1</div>
+                            <div class="number-btn" data-value="2">2</div>
+                            <div class="number-btn selected" data-value="3">3</div>
+                            <div class="number-btn" data-value="4">4</div>
+                            <div class="number-btn" data-value="5">5</div>
+                        </div>
+                        <input type="hidden" name="instagram_posts" value="3">
+                    </div>
+                </div>
+
+                <div class="platform-card" id="facebook-card">
+                    <div class="platform-header">
+                        <input type="checkbox" id="facebook-enabled" onchange="togglePlatform('facebook')">
+                        <label for="facebook-enabled">👥 Facebook</label>
+                    </div>
+                    <div class="platform-controls" id="facebook-controls">
+                        <label>Number of Posts:</label>
+                        <div class="number-selector" id="facebook-selector">
+                            <div class="number-btn" data-value="1">1</div>
+                            <div class="number-btn" data-value="2">2</div>
+                            <div class="number-btn selected" data-value="3">3</div>
+                            <div class="number-btn" data-value="4">4</div>
+                            <div class="number-btn" data-value="5">5</div>
+                        </div>
+                        <input type="hidden" name="facebook_posts" value="3">
+                    </div>
+                </div>
                 
-                <button type="submit" class="submit-btn" id="submit-btn">🚀 Generate My Content</button>
+                <button type="submit" class="submit-btn">🚀 Generate My Content</button>
             </div>
         </form>
     </div>
@@ -614,352 +312,200 @@
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let userTierData = null;
-        let uploadedPhotos = []; // Array of {file, dataUrl, instructors[], keywords[]}
+        let uploadedPhotos = [];
         let studioInstructors = [];
-        
-        // Email verification
-        const emailInput = document.getElementById('email');
-        const tierInfo = document.getElementById('tier-info');
-        const mainForm = document.getElementById('main-form');
-        const photoSection = document.getElementById('photo-section');
-        const instructorManagement = document.getElementById('instructor-management');
 
-        emailInput.addEventListener('blur', async function() {
+        document.getElementById('email').addEventListener('blur', async function() {
             const email = this.value.trim().toLowerCase();
             if (!email || !email.includes('@')) return;
 
-            tierInfo.innerHTML = '<p>Checking your account...</p>';
-            tierInfo.classList.add('show');
+            document.getElementById('tier-info').innerHTML = '<p>Checking account...</p>';
+            document.getElementById('tier-info').classList.add('show');
 
-            try {
-                await checkUserTier(email);
-            } catch (error) {
-                console.error('Error checking tier:', error);
-                tierInfo.innerHTML = '<p style="color: #b91c1c;">Error loading account. Please try again.</p>';
+            const { data: studioData } = await supabaseClient.from('studio_accounts').select('*').eq('owner_email', email).eq('subscription_status', 'active').single();
+
+            if (studioData) {
+                const { data: instructors } = await supabaseClient.from('studio_instructors').select('*').eq('studio_id', studioData.id).eq('status', 'active');
+                studioInstructors = instructors || [];
+                
+                userTierData = { tier: 'studio', role: 'studio_owner', email, studio_id: studioData.id, studio_name: studioData.studio_name };
+                
+                document.getElementById('tier-info').innerHTML = `<h3>🏢 Studio Owner</h3><p><strong>${studioData.studio_name}</strong></p>`;
+                document.getElementById('user_tier').value = 'studio';
+                document.getElementById('user_role').value = 'studio_owner';
+                document.getElementById('studio_id').value = studioData.id;
+                
+                document.getElementById('photo-section').classList.remove('hidden');
+                document.getElementById('instructor-management').classList.add('show');
+                renderInstructorList();
+                document.getElementById('main-form').style.display = 'block';
+                return;
             }
+
+            document.getElementById('tier-info').innerHTML = '<h3>No Account</h3><p>Please contact support.</p>';
         });
 
-        async function checkUserTier(email) {
-            // Check 1: Studio Owner?
-            const { data: studioOwnerData } = await supabaseClient
-                .from('studio_accounts')
-                .select('*')
-                .eq('owner_email', email)
-                .eq('subscription_status', 'active')
-                .single();
-
-            if (studioOwnerData) {
-                // Fetch instructors for this studio
-                const { data: instructorsData } = await supabaseClient
-                    .from('studio_instructors')
-                    .select('*')
-                    .eq('studio_id', studioOwnerData.id)
-                    .eq('status', 'active');
-
-                studioInstructors = instructorsData || [];
-                
-                userTierData = {
-                    tier: studioOwnerData.plan_type || 'pro',
-                    role: 'studio_owner',
-                    email: email,
-                    studio_id: studioOwnerData.id,
-                    studio_name: studioOwnerData.studio_name
-                };
-
-                tierInfo.className = 'tier-info show';
-                tierInfo.innerHTML = `
-                    <h3>🏢 Studio Owner</h3>
-                    <p><strong>${userTierData.studio_name}</strong></p>
-                    <p style="font-size: 13px; margin-top: 8px;">✨ Upload photos and tag them for your ${studioInstructors.length} instructor(s)</p>
-                `;
-
-                document.getElementById('user_tier').value = userTierData.tier;
-                document.getElementById('user_role').value = 'studio_owner';
-                document.getElementById('studio_id').value = userTierData.studio_id;
-                document.getElementById('studio_name').value = userTierData.studio_name;
-                
-                photoSection.classList.remove('hidden');
-                instructorManagement.classList.add('show');
-                renderInstructorList();
-                
-                mainForm.style.display = 'block';
-                return;
-            }
-
-            // Add other checks (trial, instructor, client) here...
-            // For now, showing simplified version
-
-            tierInfo.className = 'tier-info expired show';
-            tierInfo.innerHTML = `
-                <h3>🆕 New User?</h3>
-                <p>We couldn't find an account with this email.</p>
-            `;
-        }
-
-        // Instructor Management
         function renderInstructorList() {
-            const instructorList = document.getElementById('instructor-list');
-            
+            const list = document.getElementById('instructor-list');
             if (studioInstructors.length === 0) {
-                instructorList.innerHTML = '<p style="color: #64748b; font-size: 14px; text-align: center; padding: 20px;">No instructors yet. Add your first instructor below!</p>';
+                list.innerHTML = '<p style="text-align: center; color: #64748b;">No instructors yet.</p>';
                 return;
             }
-
-            instructorList.innerHTML = studioInstructors.map(instructor => `
-                <div class="instructor-item" data-instructor-id="${instructor.id}">
-                    <div class="instructor-info">
-                        <div class="instructor-name">${instructor.instructor_name || 'Unnamed'}</div>
-                        <div class="instructor-email">${instructor.instructor_email}</div>
-                    </div>
-                    <button type="button" class="remove-instructor-btn" onclick="removeInstructor('${instructor.id}')">Remove</button>
+            list.innerHTML = studioInstructors.map(i => `
+                <div class="instructor-item">
+                    <div><div class="instructor-name">${i.instructor_name || 'Unnamed'}</div><div class="instructor-email">${i.instructor_email}</div></div>
+                    <button type="button" class="remove-instructor-btn" onclick="removeInstructor('${i.id}')">Remove</button>
                 </div>
             `).join('');
         }
 
-        // Add instructor
         document.getElementById('add-instructor-btn').addEventListener('click', async function() {
             const name = document.getElementById('new-instructor-name').value.trim();
-            const email = document.getElementById('new-instructor-email').value.trim().toLowerCase();
-
-            if (!name || !email) {
-                alert('Please enter both name and email');
-                return;
-            }
-
-            if (!email.includes('@')) {
-                alert('Please enter a valid email');
-                return;
-            }
+            const email = document.getElementById('new-instructor-email').value.trim();
+            if (!name || !email) return alert('Enter both name and email');
 
             document.getElementById('loading-overlay').classList.add('show');
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('studio_instructors')
-                    .insert({
-                        studio_id: userTierData.studio_id,
-                        instructor_email: email,
-                        instructor_name: name,
-                        status: 'active'
-                    })
-                    .select()
-                    .single();
-
-                if (error) throw error;
-
-                // Add to clients table too
-                await supabaseClient
-                    .from('clients')
-                    .insert({
-                        email: email,
-                        subscription_status: 'active',
-                        tier: 'basic'
-                    });
-
-                studioInstructors.push(data);
-                renderInstructorList();
-                renderPhotoCards(); // Update photo cards with new instructor
-
-                document.getElementById('new-instructor-name').value = '';
-                document.getElementById('new-instructor-email').value = '';
-
-                alert(`✅ ${name} added successfully!`);
-            } catch (error) {
-                console.error('Error adding instructor:', error);
-                alert('Error adding instructor: ' + error.message);
-            } finally {
-                document.getElementById('loading-overlay').classList.remove('show');
-            }
+            const { data, error } = await supabaseClient.from('studio_instructors').insert({ studio_id: userTierData.studio_id, instructor_email: email, instructor_name: name, status: 'active' }).select().single();
+            document.getElementById('loading-overlay').classList.remove('show');
+            
+            if (error) return alert('Error: ' + error.message);
+            studioInstructors.push(data);
+            renderInstructorList();
+            renderPhotoCards();
+            document.getElementById('new-instructor-name').value = '';
+            document.getElementById('new-instructor-email').value = '';
         });
 
-        // Remove instructor
-        window.removeInstructor = async function(instructorId) {
-            if (!confirm('Are you sure you want to remove this instructor?')) return;
-
+        window.removeInstructor = async function(id) {
+            if (!confirm('Remove?')) return;
             document.getElementById('loading-overlay').classList.add('show');
-
-            try {
-                const { error } = await supabaseClient
-                    .from('studio_instructors')
-                    .update({ status: 'inactive' })
-                    .eq('id', instructorId);
-
-                if (error) throw error;
-
-                studioInstructors = studioInstructors.filter(i => i.id !== instructorId);
-                renderInstructorList();
-                renderPhotoCards();
-
-                alert('✅ Instructor removed successfully!');
-            } catch (error) {
-                console.error('Error removing instructor:', error);
-                alert('Error removing instructor: ' + error.message);
-            } finally {
-                document.getElementById('loading-overlay').classList.remove('show');
-            }
+            await supabaseClient.from('studio_instructors').update({ status: 'inactive' }).eq('id', id);
+            studioInstructors = studioInstructors.filter(i => i.id !== id);
+            renderInstructorList();
+            renderPhotoCards();
+            document.getElementById('loading-overlay').classList.remove('show');
         };
 
-        // Photo Upload
-        const photoInput = document.getElementById('photo-input');
-        const photoUploadArea = document.getElementById('photo-upload-area');
+        document.getElementById('photo-upload-area').addEventListener('click', () => document.getElementById('photo-input').click());
 
-        photoUploadArea.addEventListener('click', () => photoInput.click());
-
-        photoInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            files.forEach(file => {
-                if (file.size > 5 * 1024 * 1024) {
-                    alert(`${file.name} is too large (max 5MB)`);
-                    return;
-                }
-                
+        document.getElementById('photo-input').addEventListener('change', (e) => {
+            Array.from(e.target.files).forEach(file => {
+                if (file.size > 5 * 1024 * 1024) return alert(`${file.name} too large`);
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    uploadedPhotos.push({
-                        file: file,
-                        dataUrl: event.target.result,
-                        instructors: [], // Empty = available to all
-                        keywords: []
-                    });
+                    uploadedPhotos.push({ file, dataUrl: event.target.result, instructors: [], keywords: [] });
                     renderPhotoCards();
                 };
                 reader.readAsDataURL(file);
             });
-            photoInput.value = ''; // Reset input
+            e.target.value = '';
         });
 
         function renderPhotoCards() {
-            const grid = document.getElementById('photo-cards-grid');
-            
-            if (uploadedPhotos.length === 0) {
-                grid.innerHTML = '';
-                return;
-            }
-
-            grid.innerHTML = uploadedPhotos.map((photo, index) => `
+            if (uploadedPhotos.length === 0) return document.getElementById('photo-cards-grid').innerHTML = '';
+            document.getElementById('photo-cards-grid').innerHTML = uploadedPhotos.map((p, i) => `
                 <div class="photo-card">
-                    <button type="button" class="photo-card-remove" onclick="removePhoto(${index})">×</button>
-                    
+                    <button type="button" class="photo-card-remove" onclick="removePhoto(${i})">×</button>
                     <div class="photo-card-header">
-                        <img src="${photo.dataUrl}" class="photo-thumbnail" alt="Photo ${index + 1}">
-                        <div style="flex-grow: 1;">
-                            <h4 style="margin-bottom: 10px; color: #1e293b;">Photo ${index + 1}</h4>
-                            <p style="font-size: 13px; color: #64748b;">Tag for instructors and add keywords</p>
-                        </div>
+                        <img src="${p.dataUrl}" class="photo-thumbnail">
+                        <div><h4>Photo ${i + 1}</h4></div>
                     </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <label style="font-size: 13px; color: #475569; margin-bottom: 8px; display: block;">
-                            Tag for Instructors: <span style="color: #64748b; font-weight: 400;">(Leave unchecked for general use by all)</span>
-                        </label>
-                        <div class="instructor-checkboxes">
-                            ${studioInstructors.map(instructor => `
-                                <div class="instructor-checkbox-item">
-                                    <input 
-                                        type="checkbox" 
-                                        id="photo-${index}-instructor-${instructor.id}"
-                                        data-photo-index="${index}"
-                                        data-instructor-email="${instructor.instructor_email}"
-                                        ${photo.instructors.includes(instructor.instructor_email) ? 'checked' : ''}
-                                        onchange="updatePhotoInstructors(${index})"
-                                    >
-                                    <label for="photo-${index}-instructor-${instructor.id}">
-                                        ${instructor.instructor_name || instructor.instructor_email}
-                                    </label>
-                                </div>
-                            `).join('')}
-                        </div>
+                    <label style="font-size: 13px; margin-bottom: 8px; display: block;">Tag for Instructors:</label>
+                    <div class="instructor-checkboxes">
+                        ${studioInstructors.map(inst => `
+                            <div class="instructor-checkbox-item">
+                                <input type="checkbox" id="p${i}-i${inst.id}" data-photo="${i}" data-email="${inst.instructor_email}" ${p.instructors.includes(inst.instructor_email) ? 'checked' : ''} onchange="updatePhotoInstructors(${i})">
+                                <label for="p${i}-i${inst.id}">${inst.instructor_name}</label>
+                            </div>
+                        `).join('')}
                     </div>
-
-                    <div>
-                        <label style="font-size: 13px; color: #475569; margin-bottom: 8px; display: block;">
-                            Keywords <span style="color: #64748b; font-weight: 400;">(comma-separated, e.g., yoga, stretching, mindfulness)</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            class="keywords-input" 
-                            placeholder="e.g., yoga, HIIT, outdoor, group class"
-                            value="${photo.keywords.join(', ')}"
-                            onchange="updatePhotoKeywords(${index}, this.value)"
-                        >
-                    </div>
+                    <label style="font-size: 13px; margin-bottom: 8px; display: block; margin-top: 10px;">Keywords:</label>
+                    <input type="text" class="keywords-input" placeholder="yoga, HIIT, outdoor" value="${p.keywords.join(', ')}" onchange="updateKeywords(${i}, this.value)">
                 </div>
             `).join('');
         }
 
-        window.removePhoto = function(index) {
-            uploadedPhotos.splice(index, 1);
-            renderPhotoCards();
+        window.removePhoto = function(i) { uploadedPhotos.splice(i, 1); renderPhotoCards(); };
+        window.updatePhotoInstructors = function(i) {
+            const selected = Array.from(document.querySelectorAll(`input[data-photo="${i}"]:checked`)).map(cb => cb.dataset.email);
+            uploadedPhotos[i].instructors = selected;
+        };
+        window.updateKeywords = function(i, val) {
+            uploadedPhotos[i].keywords = val.split(',').map(k => k.trim()).filter(k => k);
         };
 
-        window.updatePhotoInstructors = function(photoIndex) {
-            const checkboxes = document.querySelectorAll(`input[data-photo-index="${photoIndex}"]`);
-            const selectedInstructors = Array.from(checkboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.dataset.instructorEmail);
-            
-            uploadedPhotos[photoIndex].instructors = selectedInstructors;
+        document.querySelectorAll('.number-selector').forEach(sel => {
+            sel.querySelectorAll('.number-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    sel.querySelectorAll('.number-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    document.querySelector(`input[name="${sel.id.replace('-selector', '_posts')}"]`).value = this.dataset.value;
+                });
+            });
+        });
+
+        window.togglePlatform = function(platform) {
+            const checkbox = document.getElementById(`${platform}-enabled`);
+            const controls = document.getElementById(`${platform}-controls`);
+            controls.style.display = checkbox.checked ? 'block' : 'none';
         };
 
-        window.updatePhotoKeywords = function(photoIndex, value) {
-            const keywords = value.split(',').map(k => k.trim()).filter(k => k);
-            uploadedPhotos[photoIndex].keywords = keywords;
-        };
+        document.getElementById('cta_type').addEventListener('change', function() {
+            document.getElementById('custom-cta-group').style.display = this.value === 'custom' ? 'block' : 'none';
+        });
 
-        // Form submission
         document.getElementById('contentForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            if (!userTierData) {
-                alert('Please enter your email first');
-                return;
-            }
+            if (!userTierData) return alert('Enter email first');
 
             document.getElementById('loading-overlay').classList.add('show');
-            
-            try {
-                // Upload photos if any
-                for (const photo of uploadedPhotos) {
-                    const fileName = `studio-${userTierData.studio_id}/${Date.now()}-${photo.file.name}`;
-                    
-                    // Upload to storage
-                    const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                        .from('studio-photos')
-                        .upload(fileName, photo.file);
-                    
-                    if (uploadError) throw uploadError;
-                    
-                    const { data: urlData } = supabaseClient.storage
-                        .from('studio-photos')
-                        .getPublicUrl(fileName);
-                    
-                    // Save to studio_photos table
-                    await supabaseClient
-                        .from('studio_photos')
-                        .insert({
-                            studio_id: userTierData.studio_id,
-                            storage_path: fileName,
-                            storage_url: urlData.publicUrl,
-                            instructor_emails: photo.instructors.length > 0 ? photo.instructors : null, // null = all instructors
-                            keywords: photo.keywords.length > 0 ? photo.keywords : null,
-                            uploaded_by: userTierData.email
-                        });
-                }
 
-                // Show success
-                document.getElementById('loading-overlay').classList.remove('show');
-                document.getElementById('success-banner').classList.add('show');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+            for (const photo of uploadedPhotos) {
+                const fileName = `studio-${userTierData.studio_id}/${Date.now()}-${photo.file.name}`;
+                const { data: uploadData } = await supabaseClient.storage.from('studio-photos').upload(fileName, photo.file);
+                const { data: urlData } = supabaseClient.storage.from('studio-photos').getPublicUrl(fileName);
                 
-                // Reset photos
-                uploadedPhotos = [];
-                renderPhotoCards();
-
-            } catch (error) {
-                console.error('Submission error:', error);
-                alert('Error: ' + error.message);
-                document.getElementById('loading-overlay').classList.remove('show');
+                await supabaseClient.from('studio_photos').insert({
+                    studio_id: userTierData.studio_id,
+                    storage_path: fileName,
+                    storage_url: urlData.publicUrl,
+                    instructor_emails: photo.instructors.length > 0 ? photo.instructors : null,
+                    keywords: photo.keywords.length > 0 ? photo.keywords : null,
+                    uploaded_by: userTierData.email
+                });
             }
+
+            const formData = new FormData(e.target);
+            const data = {
+                email: userTierData.email,
+                user_tier: userTierData.tier,
+                user_role: userTierData.role,
+                studio_id: userTierData.studio_id,
+                client_type: formData.get('client_type'),
+                brand_voice: formData.get('brand_voice'),
+                unique_value: formData.get('unique_value'),
+                primary_goal: formData.get('primary_goal'),
+                signature_style: formData.get('signature_style'),
+                target_audience: formData.get('target_audience'),
+                fitness_focus: formData.get('fitness_focus'),
+                cta: formData.get('cta_type') === 'custom' ? formData.get('custom_cta') : formData.get('cta_type'),
+                content_themes: Array.from(document.querySelectorAll('[name="content_themes"]:checked')).map(cb => cb.value),
+                caption_style: formData.get('caption_style'),
+                hashtag_preference: formData.get('hashtag_preference'),
+                custom_hashtags: formData.get('custom_hashtags'),
+                avoid_topics: formData.get('avoid_topics'),
+                promotions: formData.get('promotions'),
+                social_profile: formData.get('social_profile')
+            };
+
+            await fetch('https://n8n.fiorsaoirse.com/webhook/73976ee9-e392-4e67-8aa5-d1164bd02356', {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+            });
+
+            document.getElementById('loading-overlay').classList.remove('show');
+            alert('✅ Submitted! Check your email in 2-3 minutes.');
+            uploadedPhotos = [];
+            renderPhotoCards();
         });
     </script>
 </body>
