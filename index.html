@@ -467,6 +467,75 @@
             font-size: 14px;
         }
         
+        /* Toggle switch for preferences */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+        }
+        
+        .toggle-label {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 15px;
+        }
+        
+        .toggle-description {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 56px;
+            height: 30px;
+            flex-shrink: 0;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.3s;
+            border-radius: 30px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #2563eb;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
         .submit-btn {
             width: 100%;
             padding: 18px;
@@ -834,6 +903,18 @@
                     </div>
                     
                     <div class="helper-text">Upload 5-20 photos. AI will match them to your posts automatically.</div>
+                    
+                    <!-- Prefer Own Photos Toggle -->
+                    <div class="toggle-group" style="margin-top: 20px;">
+                        <div>
+                            <div class="toggle-label">Prefer My Own Photos</div>
+                            <div class="toggle-description">Use photos from your uploaded library when available, otherwise generate AI images</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="preferOwnPhotos" id="preferOwnPhotos" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                 </div>
                 
                 <!-- SECTION 4: PLATFORMS -->
@@ -1028,6 +1109,9 @@
                 promotions: document.querySelector('[name="promotions"]')?.value || '',
                 social_profile: document.querySelector('[name="social_profile"]')?.value || '',
                 
+                // Photo preferences
+                preferOwnPhotos: document.getElementById('preferOwnPhotos')?.checked ?? true,
+                
                 // Content themes checkboxes
                 content_themes: Array.from(document.querySelectorAll('[name="content_themes"]:checked'))
                     .map(cb => cb.value),
@@ -1081,7 +1165,7 @@
                 
                 // Load text inputs and selects
                 Object.keys(formData).forEach(key => {
-                    if (key === 'saved_at' || key === 'content_themes' || key === 'platforms') return;
+                    if (key === 'saved_at' || key === 'content_themes' || key === 'platforms' || key === 'preferOwnPhotos') return;
                     
                     const element = document.querySelector(`[name="${key}"]`);
                     if (element && formData[key]) {
@@ -1093,6 +1177,14 @@
                         }
                     }
                 });
+                
+                // Load preferOwnPhotos checkbox
+                if (formData.preferOwnPhotos !== undefined) {
+                    const preferOwnPhotosCheckbox = document.getElementById('preferOwnPhotos');
+                    if (preferOwnPhotosCheckbox) {
+                        preferOwnPhotosCheckbox.checked = formData.preferOwnPhotos;
+                    }
+                }
                 
                 // Load content themes checkboxes
                 if (formData.content_themes) {
@@ -1180,6 +1272,12 @@
             document.querySelectorAll('.number-btn').forEach(btn => {
                 btn.addEventListener('click', () => saveFormData(email));
             });
+            
+            // Save when photo preference toggle changes
+            const preferOwnPhotosToggle = document.getElementById('preferOwnPhotos');
+            if (preferOwnPhotosToggle) {
+                preferOwnPhotosToggle.addEventListener('change', () => saveFormData(email));
+            }
         }
 
         // Clear saved data button handler
@@ -1726,6 +1824,9 @@
                 promotions: formData.get('promotions') || '',
                 social_profile: formData.get('social_profile') || '',
                 platforms: platformsArray,
+                
+                // Photo preferences
+                preferOwnPhotos: document.getElementById('preferOwnPhotos')?.checked ?? true,
                 
                 // Photos
                 photo_data: photoData
