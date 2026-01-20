@@ -1390,6 +1390,32 @@
         });
 
         async function checkUserTier(email) {
+            let role = 'regular_client';
+            let tierData = {};
+            
+            // First, ALWAYS get the client_id from clients table (this is the universal ID)
+            const { data: clientData } = await supabaseClient
+                .from('clients')
+                .select('*')
+                .eq('email', email)
+                .single();
+
+            console.log('DEBUG - clientData from Supabase:', clientData);
+
+            if (!clientData) {
+                // No account found
+                tierInfo.className = 'tier-info expired show';
+                tierInfo.innerHTML = `
+                    <h3>🆕 New User?</h3>
+                    <p>We couldn't find an account with this email.</p>
+                    <p style="margin-top: 10px;"><a href="https://fca-signup.netlify.app" style="color: #0369a1; font-weight: 600;">Start Free Trial →</a></p>
+                `;
+                return;
+            }
+            
+            // Now we have the universal client_id from clients table
+            const universalClientId = clientData.id;
+            
             // Check 1: Studio Owner?
             const { data: studioOwnerData } = await supabaseClient
                 .from('studio_accounts')
@@ -1414,7 +1440,7 @@
                     tier: studioOwnerData.plan_type || 'pro',
                     role: 'studio_owner',
                     email: email,
-                    client_id: studioOwnerData.id, // ADD STUDIO ACCOUNT ID
+                    client_id: universalClientId, // USE UNIVERSAL CLIENT ID
                     studio_id: studioOwnerData.id,
                     studio_name: studioOwnerData.studio_name
                 };
@@ -1485,7 +1511,7 @@
                     tier: 'trial',
                     role: 'trial_user',
                     email: email,
-                    client_id: trialData.id, // ADD TRIAL ID
+                    client_id: universalClientId, // USE UNIVERSAL CLIENT ID
                     posts_remaining: postsRemaining,
                     trial_end: trialEnd.toLocaleDateString()
                 };
@@ -1527,7 +1553,7 @@
                     tier: 'studio_instructor',
                     role: 'studio_instructor',
                     email: email,
-                    client_id: instructorData.id, // ADD INSTRUCTOR ID
+                    client_id: universalClientId, // USE UNIVERSAL CLIENT ID
                     studio_id: instructorData.studio_id,
                     studio_name: instructorData.studio_accounts.studio_name
                 };
@@ -1554,23 +1580,15 @@
                 return;
             }
 
-            // Check 4: Paid subscriber?
-            const { data: clientData } = await supabaseClient
-                .from('clients')
-                .select('*')
-                .eq('email', email)
-                .single();
-
-            console.log('DEBUG - clientData from Supabase:', clientData);
-
-            if (clientData && clientData.subscription_status === 'active') {
+            // Check 4: Regular paid subscriber (already have clientData from above)
+            if (clientData.subscription_status === 'active') {
                 const tier = clientData.plan_type || 'basic';
                 
                 userTierData = {
                     tier: tier,
                     role: 'regular_client',
                     email: email,
-                    client_id: clientData.id // ADD CLIENT ID
+                    client_id: universalClientId // USE UNIVERSAL CLIENT ID
                 };
 
                 const tierLabels = {
@@ -1606,12 +1624,11 @@
                 return;
             }
 
-            // No account found
+            // Should not reach here if they're in clients table
             tierInfo.className = 'tier-info expired show';
             tierInfo.innerHTML = `
-                <h3>🆕 New User?</h3>
-                <p>We couldn't find an account with this email.</p>
-                <p style="margin-top: 10px;"><a href="https://fca-signup.netlify.app" style="color: #0369a1; font-weight: 600;">Start Free Trial →</a></p>
+                <h3>⚠️ Account Issue</h3>
+                <p>Your account exists but is not active. Please contact support.</p>
             `;
         }
 
