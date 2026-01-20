@@ -1398,6 +1398,8 @@
                 .eq('subscription_status', 'active')
                 .single();
 
+            console.log('DEBUG - studioOwnerData from Supabase:', studioOwnerData);
+
             if (studioOwnerData) {
                 // Fetch instructors for this studio
                 const { data: instructorsData } = await supabaseClient
@@ -1416,6 +1418,8 @@
                     studio_id: studioOwnerData.id,
                     studio_name: studioOwnerData.studio_name
                 };
+
+                console.log('DEBUG - userTierData set for studio owner:', userTierData);
 
                 const hasSavedData = loadFormData(email);
 
@@ -1447,6 +1451,8 @@
                 .select('*')
                 .eq('email', email)
                 .single();
+
+            console.log('DEBUG - trialData from Supabase:', trialData);
 
             if (trialData) {
                 const postsUsed = trialData.content_count || 0;
@@ -1514,6 +1520,8 @@
                 .eq('status', 'active')
                 .single();
 
+            console.log('DEBUG - instructorData from Supabase:', instructorData);
+
             if (instructorData) {
                 userTierData = {
                     tier: 'studio_instructor',
@@ -1552,6 +1560,8 @@
                 .select('*')
                 .eq('email', email)
                 .single();
+
+            console.log('DEBUG - clientData from Supabase:', clientData);
 
             if (clientData && clientData.subscription_status === 'active') {
                 const tier = clientData.plan_type || 'basic';
@@ -1865,6 +1875,8 @@
                 posts_remaining: userTierData.posts_remaining || null,
                 
                 // Form data
+                
+                // Form data
                 client_type: formData.get('client_type'),
                 brand_voice: formData.get('brand_voice'),
                 unique_value: formData.get('unique_value') || '',
@@ -1890,6 +1902,8 @@
             };
             
             console.log('Submitting data:', data);
+            console.log('DEBUG - userTierData:', userTierData);
+            console.log('DEBUG - client_id being sent:', data.client_id);
             
             // Show loading
             document.getElementById('loading-overlay').classList.add('show');
