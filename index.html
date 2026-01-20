@@ -585,6 +585,11 @@
             animation: slideDown 0.5s ease;
         }
         
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -706,8 +711,25 @@
             <div class="form-group">
                 <label>Email Address: <span class="required">*</span></label>
                 <input type="email" name="email" id="email" required placeholder="your@email.com" autocomplete="email">
-                <div class="helper-text">Enter your email to load your account settings</div>
+                <div class="helper-text">Enter your email to verify your account</div>
             </div>
+            
+            <button type="button" id="verify-email-btn" style="
+                width: 100%;
+                padding: 16px;
+                background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: 10px;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(37, 99, 235, 0.4)';" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                Continue →
+            </button>
 
             <!-- Tier Info Display -->
             <div class="tier-info" id="tier-info"></div>
@@ -1324,15 +1346,25 @@
 
         // Email verification
         const emailInput = document.getElementById('email');
+        const verifyEmailBtn = document.getElementById('verify-email-btn');
         const tierInfo = document.getElementById('tier-info');
         const mainForm = document.getElementById('main-form');
         const photoSection = document.getElementById('photo-section');
 
-        emailInput.addEventListener('blur', async function() {
-            const email = this.value.trim().toLowerCase();
-            if (!email || !email.includes('@')) return;
+        // Verify email on button click
+        verifyEmailBtn.addEventListener('click', async function() {
+            const email = emailInput.value.trim().toLowerCase();
+            if (!email || !email.includes('@')) {
+                tierInfo.innerHTML = '<p style="color: #b91c1c;">Please enter a valid email address</p>';
+                tierInfo.classList.add('show');
+                return;
+            }
 
-            // Show loading
+            // Show loading on button
+            verifyEmailBtn.disabled = true;
+            verifyEmailBtn.innerHTML = '<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> Checking account...';
+            
+            // Show loading in tier info
             tierInfo.innerHTML = '<p>Checking your account...</p>';
             tierInfo.classList.add('show');
 
@@ -1341,6 +1373,18 @@
             } catch (error) {
                 console.error('Error checking tier:', error);
                 tierInfo.innerHTML = '<p style="color: #b91c1c;">Error loading account. Please try again.</p>';
+            } finally {
+                // Reset button
+                verifyEmailBtn.disabled = false;
+                verifyEmailBtn.innerHTML = 'Continue →';
+            }
+        });
+        
+        // Also allow Enter key to trigger verification
+        emailInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                verifyEmailBtn.click();
             }
         });
 
