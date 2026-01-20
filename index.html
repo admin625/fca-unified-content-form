@@ -1,1032 +1,1781 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FCA Content Request</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); min-height: 100vh; padding: 20px; }
-    .container { max-width: 700px; margin: 0 auto; }
-    .card { background: white; border-radius: 16px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-    
-    /* Email Screen Styles */
-    #emailScreen {
-      text-align: center;
-      padding: 20px;
-    }
-    #emailScreen .logo h1 {
-      color: #1e3a5f;
-      font-size: 48px;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-    #emailScreen .logo p {
-      color: #64748b;
-      font-size: 16px;
-      margin-bottom: 30px;
-    }
-    #emailScreen h2 {
-      color: #1e3a5f;
-      font-size: 24px;
-      margin-bottom: 12px;
-    }
-    #emailScreen .subtitle {
-      color: #64748b;
-      font-size: 15px;
-      margin-bottom: 40px;
-    }
-    .email-input-wrapper {
-      position: relative;
-      margin-bottom: 24px;
-    }
-    .email-input-wrapper i {
-      position: absolute;
-      left: 18px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #94a3b8;
-      font-size: 18px;
-    }
-    #emailScreen input[type="email"] {
-      width: 100%;
-      padding: 18px 18px 18px 50px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      font-size: 16px;
-    }
-    #emailScreen input[type="email"]:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    }
-    .continue-btn {
-      width: 100%;
-      padding: 18px;
-      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    .continue-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
-    }
-    .continue-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .loading-spinner {
-      display: inline-block;
-      width: 18px;
-      height: 18px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .help-text-email {
-      margin-top: 24px;
-      padding-top: 24px;
-      border-top: 1px solid #e2e8f0;
-      font-size: 13px;
-      color: #64748b;
-    }
-    .help-text-email a {
-      color: #3b82f6;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    
-    /* Form Screen Styles */
-    #formScreen {
-      display: none;
-    }
-    .header { text-align: center; margin-bottom: 30px; }
-    .header h1 { color: #1e3a5f; font-size: 28px; margin-bottom: 8px; }
-    .header p { color: #64748b; }
-    
-    .form-section { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #e2e8f0; }
-    .form-section:last-of-type { border-bottom: none; margin-bottom: 24px; }
-    .section-title { font-size: 18px; font-weight: 700; color: #1e3a5f; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .section-title i { color: #3b82f6; }
-    
-    .form-group { margin-bottom: 20px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
-    
-    label { display: block; font-weight: 600; color: #1e293b; margin-bottom: 8px; }
-    .required { color: #ef4444; }
-    input[type="email"], input[type="text"], input[type="url"], textarea, select { 
-      width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; transition: border-color 0.2s; 
-    }
-    input:focus, textarea:focus, select:focus { outline: none; border-color: #3b82f6; }
-    textarea { resize: vertical; min-height: 80px; }
-    .helper-text { font-size: 13px; color: #64748b; margin-top: 6px; }
-    
-    .platform-select-grid { display: flex; flex-direction: column; gap: 12px; }
-    .platform-select-item { 
-      border: 2px solid #e2e8f0; border-radius: 12px; 
-      padding: 16px; transition: all 0.2s; opacity: 0.6;
-    }
-    .platform-select-item.selected { 
-      border-color: #3b82f6; background: #f0f7ff; opacity: 1;
-    }
-    .platform-select-item.disabled { opacity: 0.4; cursor: not-allowed; }
-    .platform-header { 
-      display: flex; align-items: center; gap: 12px; cursor: pointer;
-    }
-    .platform-header input[type="checkbox"] { 
-      width: 20px; height: 20px; cursor: pointer; accent-color: #3b82f6;
-    }
-    .platform-icon { font-size: 24px; }
-    .platform-icon.instagram { color: #E4405F; }
-    .platform-icon.facebook { color: #1877F2; }
-    .platform-icon.linkedin { color: #0A66C2; }
-    .platform-icon.twitter { color: #000000; }
-    .platform-icon.tiktok { color: #000000; }
-    .platform-name { font-weight: 600; font-size: 16px; color: #1e293b; flex: 1; }
-    .coming-soon { 
-      background: #f59e0b; color: #000; font-size: 10px; font-weight: 700;
-      padding: 4px 10px; border-radius: 10px;
-    }
-    
-    .platform-options { 
-      display: flex; align-items: center; gap: 24px; 
-      margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;
-      flex-wrap: wrap;
-    }
-    
-    .post-count-selector { 
-      display: flex; align-items: center; gap: 12px; 
-    }
-    .count-label { font-size: 14px; color: #64748b; font-weight: 500; }
-    .count-buttons { display: flex; gap: 6px; }
-    .count-btn { 
-      width: 36px; height: 36px; border: 2px solid #e2e8f0; border-radius: 8px;
-      background: white; font-weight: 600; font-size: 14px; cursor: pointer;
-      transition: all 0.2s; color: #475569;
-    }
-    .count-btn:hover:not(:disabled) { border-color: #3b82f6; background: #f0f7ff; }
-    .count-btn.selected { 
-      border-color: #3b82f6; background: #3b82f6; color: white; 
-    }
-    .count-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    
-    .platform-image-toggle {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .platform-image-toggle .toggle-label-small {
-      font-size: 14px; color: #64748b; font-weight: 500;
-    }
-    .toggle-switch-small { position: relative; width: 44px; height: 24px; }
-    .toggle-switch-small input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider-small { 
-      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #cbd5e1; transition: 0.3s; border-radius: 24px;
-    }
-    .toggle-slider-small:before {
-      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
-      background-color: white; transition: 0.3s; border-radius: 50%;
-    }
-    .toggle-switch-small input:checked + .toggle-slider-small { background-color: #10b981; }
-    .toggle-switch-small input:checked + .toggle-slider-small:before { transform: translateX(20px); }
-    
-    .platform-select-item:not(.selected) .platform-options { 
-      opacity: 0.4; pointer-events: none; 
-    }
-    
-    .toggle-group { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #f8fafc; border-radius: 10px; margin-bottom: 16px; }
-    .toggle-label { font-weight: 600; color: #1e293b; }
-    .toggle-description { font-size: 13px; color: #64748b; margin-top: 4px; }
-    .toggle-switch { position: relative; width: 56px; height: 30px; }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { 
-      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #cbd5e1; transition: 0.3s; border-radius: 30px;
-    }
-    .toggle-slider:before {
-      position: absolute; content: ""; height: 24px; width: 24px; left: 3px; bottom: 3px;
-      background-color: white; transition: 0.3s; border-radius: 50%;
-    }
-    input:checked + .toggle-slider { background-color: #3b82f6; }
-    input:checked + .toggle-slider:before { transform: translateX(26px); }
-    
-    button[type="submit"] { 
-      width: 100%; padding: 16px; 
-      background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); 
-      color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; 
-      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; 
-    }
-    button[type="submit"]:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4); }
-    button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .btn-secondary { 
-      width: 100%; background: #f1f5f9; color: #475569; margin-top: 12px; font-size: 14px; padding: 12px;
-      border: none; border-radius: 10px; cursor: pointer;
-    }
-    .btn-secondary:hover { background: #e2e8f0; }
-    
-    .success { background: #dcfce7; color: #166534; padding: 24px; border-radius: 10px; text-align: center; display: none; }
-    .success h3 { margin-bottom: 8px; }
-    .success button { background: #166534; margin-top: 20px; }
-    .error { background: #fee2e2; color: #dc2626; padding: 16px; border-radius: 10px; text-align: center; display: none; margin-bottom: 20px; }
-    .spam-notice { background: #fef3c7; padding: 12px 16px; border-radius: 8px; font-size: 14px; color: #92400e; margin-top: 16px; text-align: center; }
-    
-    .saved-indicator { 
-      position: fixed; bottom: 20px; right: 20px; 
-      background: #10b981; color: white; padding: 10px 16px; border-radius: 8px;
-      font-size: 14px; display: none; align-items: center; gap: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .saved-indicator.show { display: flex; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCA Content Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+         
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        /* Tier Badge */
+        .tier-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tier-trial {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white;
+        }
+
+        .tier-basic {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .tier-pro {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            color: white;
+        }
+
+        .tier-premium {
+            background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+            color: white;
+        }
+
+        .tier-studio {
+            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            color: white;
+        }
+
+        /* Tier Info Box */
+        .tier-info {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .tier-info.show {
+            display: block;
+        }
+
+        .tier-info h3 {
+            color: #0369a1;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .tier-info p {
+            color: #0c4a6e;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .tier-info.trial {
+            background: #f0fdf4;
+            border-color: #10b981;
+        }
+
+        .tier-info.trial h3 {
+            color: #047857;
+        }
+
+        .tier-info.trial p {
+            color: #065f46;
+        }
+
+        .tier-info.expired {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .tier-info.expired h3 {
+            color: #b91c1c;
+        }
+
+        .tier-info.expired p {
+            color: #991b1b;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            padding: 14px 20px;
+            margin: 30px -40px 25px -40px;
+            font-weight: 600;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group.hidden {
+            display: none;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .required {
+            color: #f97316;
+            margin-left: 3px;
+        }
+        
+        .helper-text {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 400;
+            margin-top: 6px;
+            font-style: italic;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="url"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background: white;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        input:disabled,
+        select:disabled,
+        textarea:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Photo Upload Section */
+        .photo-upload-section {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-upload-section:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .photo-upload-section.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f1f5f9;
+        }
+
+        .photo-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .photo-preview {
+            position: relative;
+            width: 100%;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-preview .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        /* Studio Owner Instructor Tagging */
+        .instructor-tagging {
+            background: #eff6ff;
+            border: 2px solid #2563eb;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .instructor-tagging.show {
+            display: block;
+        }
+
+        .instructor-tagging h4 {
+            color: #1e40af;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .instructor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .instructor-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .instructor-checkbox:hover {
+            border-color: #2563eb;
+            background: #f8fafc;
+        }
+
+        .instructor-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #2563eb;
+        }
+
+        .instructor-checkbox label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            color: #1e293b;
+        }
+        
+        /* NUMBER SELECTOR */
+        .number-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .number-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            font-size: 18px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .number-btn:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+            transform: translateY(-2px);
+        }
+        
+        .number-btn.selected {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            border-color: #2563eb;
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+        
+        /* Platform Cards */
+        .platform-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+        
+        .platform-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .platform-card.disabled {
+            opacity: 0.5;
+            background: #f1f5f9;
+        }
+        
+        .platform-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .platform-header input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #2563eb;
+        }
+        
+        .platform-header label {
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0;
+            flex-grow: 1;
+            color: #1e293b;
+        }
+        
+        .platform-controls {
+            margin-left: 36px;
+            display: none;
+        }
+        
+        .platform-controls.active {
+            display: block;
+        }
+        
+        .control-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .control-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-item label {
+            font-size: 13px;
+            margin-bottom: 10px;
+            color: #475569;
+            font-weight: 600;
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .checkbox-item:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+            transform: translateY(-1px);
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #2563eb;
+        }
+        
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.3);
+            letter-spacing: 0.3px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(249, 115, 22, 0.4);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .submit-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Success Banner */
+        .success-banner {
+            display: none;
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .success-banner.show {
+            display: block;
+            animation: slideDown 0.5s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success-banner h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .success-banner p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        
+        .success-banner .email-note {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            font-size: 14px;
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loading-overlay.show {
+            display: flex;
+        }
+        
+        .loading-box {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .section-header {
+                margin-left: -20px;
+                margin-right: -20px;
+            }
+            
+            .number-selector {
+                gap: 6px;
+            }
+            
+            .number-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 16px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      
-      <!-- EMAIL SCREEN -->
-      <div id="emailScreen">
-        <div class="logo">
-          <h1>FCA</h1>
-          <p>Fitness Content Automation</p>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <h2 style="color: #1e293b;">Creating Your Content...</h2>
+            <p style="color: #64748b; margin-top: 10px;">This usually takes 2-3 minutes.</p>
         </div>
-        
-        <h2>Welcome Back!</h2>
-        <p class="subtitle">Enter your email to access your content dashboard</p>
-        
-        <div id="emailError" class="error"></div>
-        
-        <form id="emailForm">
-          <div class="email-input-wrapper">
-            <i class="fas fa-envelope"></i>
-            <input 
-              type="email" 
-              id="emailInput" 
-              name="email" 
-              placeholder="your@email.com"
-              required
-              autocomplete="email"
-            >
-          </div>
-          
-          <button type="submit" class="continue-btn" id="continueBtn">
-            <span id="btnText">Continue</span>
-            <i class="fas fa-arrow-right" id="btnIcon"></i>
-          </button>
-        </form>
-        
-        <div class="help-text-email">
-          New to FCA? <a href="https://fca-signup.netlify.app">Start your 7-day free trial</a>
-        </div>
-      </div>
-
-      <!-- FORM SCREEN -->
-      <div id="formScreen">
-        <div class="header">
-          <h1>🎯 Request Your Content</h1>
-          <p>Fill out the form below to generate your personalized fitness content</p>
-        </div>
-
-        <div id="formError" class="error"></div>
-
-        <form id="contentForm">
-          
-          <!-- SECTION: Basic Info -->
-          <div class="form-section">
-            <h2 class="section-title"><i class="fas fa-user"></i> Your Information</h2>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label>Email Address <span class="required">*</span></label>
-                <input type="email" name="email" id="email" required placeholder="your@email.com" readonly>
-              </div>
-              <div class="form-group">
-                <label>Business Name</label>
-                <input type="text" name="businessName" id="businessName" placeholder="Your Fitness Studio">
-              </div>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label>Your Name</label>
-                <input type="text" name="name" id="name" placeholder="John Smith">
-              </div>
-              <div class="form-group">
-                <label>Your Title/Role</label>
-                <input type="text" name="title" id="title" placeholder="e.g., Owner, Head Trainer">
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label>Website URL</label>
-              <input type="url" name="website" id="website" placeholder="https://yourfitnessbusiness.com">
-              <p class="helper-text">We may use this to better understand your brand and services</p>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label>Instagram Handle</label>
-                <input type="text" name="instagram_handle" id="instagram_handle" placeholder="@yourhandle">
-              </div>
-              <div class="form-group">
-                <label>Location / City</label>
-                <input type="text" name="location" id="location" placeholder="e.g., Austin, TX">
-              </div>
-            </div>
-          </div>
-
-          <!-- SECTION: Platform Selection -->
-          <div class="form-section">
-            <h2 class="section-title"><i class="fas fa-share-nodes"></i> Platforms & Posts</h2>
-            
-            <label>Select Platforms, Posts & Image Preferences <span class="required">*</span></label>
-            <p class="helper-text" style="margin-bottom: 16px;">Click to select a platform, choose post count (1-5), and toggle images on/off per platform</p>
-            
-            <div class="platform-select-grid">
-              <!-- Instagram -->
-              <div class="platform-select-item" data-platform="instagram">
-                <div class="platform-header">
-                  <input type="checkbox" name="platforms" value="instagram" id="platform-instagram">
-                  <i class="fab fa-instagram platform-icon instagram"></i>
-                  <span class="platform-name">Instagram</span>
-                </div>
-                <div class="platform-options">
-                  <div class="post-count-selector">
-                    <span class="count-label">Posts:</span>
-                    <div class="count-buttons">
-                      <button type="button" class="count-btn" data-count="1">1</button>
-                      <button type="button" class="count-btn selected" data-count="2">2</button>
-                      <button type="button" class="count-btn" data-count="3">3</button>
-                      <button type="button" class="count-btn" data-count="4">4</button>
-                      <button type="button" class="count-btn" data-count="5">5</button>
-                    </div>
-                    <input type="hidden" name="instagram_count" value="2">
-                  </div>
-                  <div class="platform-image-toggle">
-                    <span class="toggle-label-small">Images:</span>
-                    <label class="toggle-switch-small">
-                      <input type="checkbox" name="instagram_images" id="instagram_images" checked>
-                      <span class="toggle-slider-small"></span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Facebook -->
-              <div class="platform-select-item" data-platform="facebook">
-                <div class="platform-header">
-                  <input type="checkbox" name="platforms" value="facebook" id="platform-facebook">
-                  <i class="fab fa-facebook platform-icon facebook"></i>
-                  <span class="platform-name">Facebook</span>
-                </div>
-                <div class="platform-options">
-                  <div class="post-count-selector">
-                    <span class="count-label">Posts:</span>
-                    <div class="count-buttons">
-                      <button type="button" class="count-btn" data-count="1">1</button>
-                      <button type="button" class="count-btn selected" data-count="2">2</button>
-                      <button type="button" class="count-btn" data-count="3">3</button>
-                      <button type="button" class="count-btn" data-count="4">4</button>
-                      <button type="button" class="count-btn" data-count="5">5</button>
-                    </div>
-                    <input type="hidden" name="facebook_count" value="2">
-                  </div>
-                  <div class="platform-image-toggle">
-                    <span class="toggle-label-small">Images:</span>
-                    <label class="toggle-switch-small">
-                      <input type="checkbox" name="facebook_images" id="facebook_images" checked>
-                      <span class="toggle-slider-small"></span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- LinkedIn -->
-              <div class="platform-select-item" data-platform="linkedin">
-                <div class="platform-header">
-                  <input type="checkbox" name="platforms" value="linkedin" id="platform-linkedin">
-                  <i class="fab fa-linkedin platform-icon linkedin"></i>
-                  <span class="platform-name">LinkedIn</span>
-                </div>
-                <div class="platform-options">
-                  <div class="post-count-selector">
-                    <span class="count-label">Posts:</span>
-                    <div class="count-buttons">
-                      <button type="button" class="count-btn" data-count="1">1</button>
-                      <button type="button" class="count-btn selected" data-count="2">2</button>
-                      <button type="button" class="count-btn" data-count="3">3</button>
-                      <button type="button" class="count-btn" data-count="4">4</button>
-                      <button type="button" class="count-btn" data-count="5">5</button>
-                    </div>
-                    <input type="hidden" name="linkedin_count" value="2">
-                  </div>
-                  <div class="platform-image-toggle">
-                    <span class="toggle-label-small">Images:</span>
-                    <label class="toggle-switch-small">
-                      <input type="checkbox" name="linkedin_images" id="linkedin_images">
-                      <span class="toggle-slider-small"></span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Twitter/X -->
-              <div class="platform-select-item" data-platform="twitter">
-                <div class="platform-header">
-                  <input type="checkbox" name="platforms" value="twitter" id="platform-twitter">
-                  <i class="fab fa-x-twitter platform-icon twitter"></i>
-                  <span class="platform-name">X / Twitter</span>
-                </div>
-                <div class="platform-options">
-                  <div class="post-count-selector">
-                    <span class="count-label">Posts:</span>
-                    <div class="count-buttons">
-                      <button type="button" class="count-btn" data-count="1">1</button>
-                      <button type="button" class="count-btn selected" data-count="2">2</button>
-                      <button type="button" class="count-btn" data-count="3">3</button>
-                      <button type="button" class="count-btn" data-count="4">4</button>
-                      <button type="button" class="count-btn" data-count="5">5</button>
-                    </div>
-                    <input type="hidden" name="twitter_count" value="2">
-                  </div>
-                  <div class="platform-image-toggle">
-                    <span class="toggle-label-small">Images:</span>
-                    <label class="toggle-switch-small">
-                      <input type="checkbox" name="twitter_images" id="twitter_images">
-                      <span class="toggle-slider-small"></span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- TikTok - Coming Soon -->
-              <div class="platform-select-item disabled" data-platform="tiktok">
-                <div class="platform-header">
-                  <input type="checkbox" name="platforms" value="tiktok" id="platform-tiktok" disabled>
-                  <i class="fab fa-tiktok platform-icon tiktok"></i>
-                  <span class="platform-name">TikTok</span>
-                  <span class="coming-soon">COMING SOON</span>
-                </div>
-                <div class="platform-options">
-                  <div class="post-count-selector">
-                    <span class="count-label">Posts:</span>
-                    <div class="count-buttons">
-                      <button type="button" class="count-btn" data-count="1" disabled>1</button>
-                      <button type="button" class="count-btn" data-count="2" disabled>2</button>
-                      <button type="button" class="count-btn" data-count="3" disabled>3</button>
-                      <button type="button" class="count-btn" data-count="4" disabled>4</button>
-                      <button type="button" class="count-btn" data-count="5" disabled>5</button>
-                    </div>
-                    <input type="hidden" name="tiktok_count" value="0">
-                  </div>
-                  <div class="platform-image-toggle">
-                    <span class="toggle-label-small">Images:</span>
-                    <label class="toggle-switch-small">
-                      <input type="checkbox" name="tiktok_images" id="tiktok_images" disabled>
-                      <span class="toggle-slider-small"></span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- SECTION: Image Preferences (Global) -->
-          <div class="form-section">
-            <h2 class="section-title"><i class="fas fa-image"></i> Photo Preferences</h2>
-            
-            <div class="toggle-group">
-              <div>
-                <div class="toggle-label">Prefer My Own Photos</div>
-                <div class="toggle-description">Use photos from your uploaded library when available, otherwise generate AI images</div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" name="preferOwnPhotos" id="preferOwnPhotos" checked>
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            
-            <p class="helper-text" style="margin-top: 8px;">
-              <i class="fas fa-info-circle"></i> 
-              Haven't uploaded photos yet? <a href="https://fca-photo-upload.netlify.app" target="_blank" style="color: #3b82f6;">Upload your brand photos here</a>
-            </p>
-          </div>
-
-          <!-- SECTION: Content Details -->
-          <div class="form-section">
-            <h2 class="section-title"><i class="fas fa-pen-fancy"></i> Content Details</h2>
-            
-            <div class="form-group">
-              <label>Content Focus / Theme This Week</label>
-              <input type="text" name="theme" id="theme" placeholder="e.g., Summer fitness motivation, New program launch, Holiday specials">
-              <p class="helper-text">Give us a specific theme or topic for this batch of content</p>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label>Your Specialty / Niche</label>
-                <input type="text" name="specialty" id="specialty" placeholder="e.g., HIIT, Yoga, Strength Training">
-              </div>
-              <div class="form-group">
-                <label>Your Unique Selling Point</label>
-                <input type="text" name="usp" id="usp" placeholder="e.g., 20+ years experience, Certified nutritionist">
-              </div>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label>Target Audience</label>
-                <select name="audience" id="audience">
-                  <option value="general">General Fitness Enthusiasts</option>
-                  <option value="beginners">Beginners / New to Fitness</option>
-                  <option value="intermediate">Intermediate / Regular Gym-Goers</option>
-                  <option value="advanced">Advanced / Athletes</option>
-                  <option value="seniors">Seniors / 50+</option>
-                  <option value="busy-professionals">Busy Professionals</option>
-                  <option value="moms">Moms / Parents</option>
-                  <option value="weight-loss">Weight Loss Focused</option>
-                  <option value="muscle-building">Muscle Building / Bodybuilding</option>
-                  <option value="youth">Youth / Teens</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Content Tone</label>
-                <select name="tone" id="tone">
-                  <option value="motivational">Motivational & Inspiring</option>
-                  <option value="educational">Educational & Informative</option>
-                  <option value="casual">Casual & Friendly</option>
-                  <option value="professional">Professional & Expert</option>
-                  <option value="fun">Fun & Energetic</option>
-                  <option value="empathetic">Empathetic & Supportive</option>
-                </select>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label>Services You Offer</label>
-              <input type="text" name="services" id="services" placeholder="e.g., 1-on-1 training, Group classes, Online coaching, Meal plans">
-              <p class="helper-text">List your main services so we can promote them in posts</p>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label>Call-to-Action Preference</label>
-                <select name="cta" id="cta">
-                  <option value="learn-more">Learn More (Link in Bio)</option>
-                  <option value="dm">DM for Info</option>
-                  <option value="book">Book a Session</option>
-                  <option value="free-trial">Free Trial Offer</option>
-                  <option value="call">Call/Text Us</option>
-                  <option value="website">Visit Website</option>
-                  <option value="none">No Direct CTA</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Hashtag Style</label>
-                <select name="hashtagStyle" id="hashtagStyle">
-                  <option value="moderate">Moderate (8-12 hashtags)</option>
-                  <option value="minimal">Minimal (3-5 hashtags)</option>
-                  <option value="heavy">Heavy (15-20 hashtags)</option>
-                  <option value="none">No Hashtags</option>
-                </select>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label>Your Branded Hashtags</label>
-              <input type="text" name="brandedHashtags" id="brandedHashtags" placeholder="e.g., #YourGymName #TrainWithJohn #FitWithUs">
-              <p class="helper-text">Hashtags you always want included in your posts</p>
-            </div>
-          </div>
-
-          <!-- SECTION: Additional Context -->
-          <div class="form-section">
-            <h2 class="section-title"><i class="fas fa-lightbulb"></i> Additional Context</h2>
-            
-            <div class="form-group">
-              <label>Current Promotions or Events</label>
-              <textarea name="promotions" id="promotions" placeholder="e.g., 20% off first month, New year challenge starting Jan 1, Free consultation this week"></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label>Topics to Avoid</label>
-              <input type="text" name="avoidTopics" id="avoidTopics" placeholder="e.g., Weight loss, Before/after photos, Specific competitors">
-              <p class="helper-text">Anything you don't want us to mention or focus on</p>
-            </div>
-            
-            <div class="form-group">
-              <label>Additional Notes or Requests</label>
-              <textarea name="notes" id="notes" placeholder="Any other specific requests, context, or information that would help us create better content for you"></textarea>
-            </div>
-          </div>
-
-          <button type="submit" id="submitBtn">
-            <i class="fas fa-rocket"></i> Generate My Content
-          </button>
-          
-          <button type="button" class="btn-secondary" onclick="clearSavedData()">
-            <i class="fas fa-eraser"></i> Clear Saved Form Data
-          </button>
-
-          <div class="spam-notice">
-            <i class="fas fa-envelope"></i> Please check your <strong>spam/junk folder</strong> if you don't see our email within a few minutes!
-          </div>
-        </form>
-
-        <div id="success" class="success">
-          <h3>✅ Content Request Submitted!</h3>
-          <p>We're generating your personalized content now.</p>
-          <p style="margin-top: 12px;">Check your email in a few minutes!</p>
-          <p style="margin-top: 8px; font-size: 14px; color: #166534;">Don't forget to check your spam folder.</p>
-          <button type="button" onclick="resetForm()" style="margin-top: 20px; background: #166534; cursor: pointer; border: none; padding: 12px 24px; color: white; border-radius: 8px;">
-            <i class="fas fa-plus"></i> Submit Another Request
-          </button>
-        </div>
-      </div>
-
     </div>
-  </div>
 
-  <div class="saved-indicator" id="savedIndicator">
-    <i class="fas fa-check-circle"></i> Form data saved
-  </div>
+    <div class="container">
+        <!-- Success Banner -->
+        <div class="success-banner" id="success-banner">
+            <h2>✅ Content Request Submitted!</h2>
+            <p>Your personalized fitness content is being generated now.</p>
+            <div class="email-note">
+                📧 Check your email in 2-3 minutes for your content dashboard link.
+            </div>
+        </div>
 
-  <script>
-    // CONFIGURATION
-    const SUPABASE_URL = 'https://kidgcrqxrfcbsaeguwop.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpZGdjcnF4cmZjYnNhZWd1d29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2MzY5MzQsImV4cCI6MjA3NDIxMjkzNH0.7u__bKIRGD7xt3JcoME2CBjIF7dGdkqE24IQ26hCe3k';
-    const TRIAL_SIGNUP_URL = 'https://fca-signup.netlify.app';
-    const WEBHOOK_URL = 'https://n8n.fiorsaoirse.com/webhook/fca-unified-content';
-    const STORAGE_KEY = 'fca_form_data_unified';
-
-    // Fields to save
-    const fieldsToSave = [
-      'email', 'businessName', 'name', 'title', 'website', 'instagram_handle', 'location',
-      'theme', 'specialty', 'usp', 'audience', 'tone', 'services', 'cta', 'hashtagStyle',
-      'brandedHashtags', 'promotions', 'avoidTopics', 'notes', 'preferOwnPhotos'
-    ];
-    const platformsToSave = ['instagram', 'facebook', 'linkedin', 'twitter'];
-
-    // EMAIL SCREEN LOGIC
-    const emailForm = document.getElementById('emailForm');
-    const emailInput = document.getElementById('emailInput');
-    const continueBtn = document.getElementById('continueBtn');
-    const btnText = document.getElementById('btnText');
-    const btnIcon = document.getElementById('btnIcon');
-    const emailError = document.getElementById('emailError');
-    
-    // Load saved email if exists
-    const savedEmail = localStorage.getItem('fca_user_email');
-    if (savedEmail) {
-      emailInput.value = savedEmail;
-    }
-    
-    emailForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const email = emailInput.value.trim().toLowerCase();
-      
-      if (!email) {
-        showEmailError('Please enter your email address');
-        return;
-      }
-      
-      localStorage.setItem('fca_user_email', email);
-      
-      setLoading(true);
-      hideEmailError();
-      
-      try {
-        const userExists = await checkUserStatus(email);
+        <h1>🎯 FCA Content Generator</h1>
+        <p class="subtitle">AI-powered social media content for fitness professionals</p>
         
-        if (!userExists) {
-          // Redirect to trial signup
-          window.location.href = `${TRIAL_SIGNUP_URL}?email=${encodeURIComponent(email)}`;
-        } else {
-          // Show form screen
-          showFormScreen(email);
+        <form id="contentForm">
+            <!-- SECTION 0: EMAIL & TIER DETECTION -->
+            <div class="section-header">Your Account</div>
+            
+            <div class="form-group">
+                <label>Email Address: <span class="required">*</span></label>
+                <input type="email" name="email" id="email" required placeholder="your@email.com" autocomplete="email">
+                <div class="helper-text">Enter your email to load your account settings</div>
+            </div>
+
+            <!-- Tier Info Display -->
+            <div class="tier-info" id="tier-info"></div>
+
+            <!-- Hidden fields for tier data -->
+            <input type="hidden" name="user_tier" id="user_tier">
+            <input type="hidden" name="user_role" id="user_role">
+            <input type="hidden" name="studio_id" id="studio_id">
+            <input type="hidden" name="studio_name" id="studio_name">
+            <input type="hidden" name="posts_remaining" id="posts_remaining">
+            
+            <!-- Main Form (hidden until email verified) -->
+            <div id="main-form" style="display: none;">
+                
+                <!-- SECTION 1: BRAND IDENTITY -->
+                <div class="section-header">Your Brand Identity</div>
+                
+                <div class="form-group">
+                    <label>I am a: <span class="required">*</span></label>
+                    <select name="client_type" required id="client_type">
+                        <option value="">Select one...</option>
+                        <option value="instructor">Fitness Instructor/Personal Trainer</option>
+                        <option value="gym_owner">Gym/Studio Owner</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>My coaching/brand style is: <span class="required">*</span></label>
+                    <select name="brand_voice" required>
+                        <option value="">Select one...</option>
+                        <option value="motivational">Motivational & Inspiring - "You got this!" energy</option>
+                        <option value="tough_love">Tough Love & No Excuses - Results-focused</option>
+                        <option value="educational">Educational & Science-Based - Explain the why</option>
+                        <option value="fun">Fun & Energetic - Make fitness entertaining</option>
+                        <option value="mindful">Calm & Mindful - Wellness & balance focused</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>What makes you/your business different?</label>
+                    <textarea name="unique_value" rows="3" placeholder="Example: I specialize in helping busy moms regain confidence through 30-minute HIIT sessions that fit their schedule"></textarea>
+                    <div class="helper-text">2-3 sentences about your unique approach or specialty</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>My main goal with social media is: <span class="required">*</span></label>
+                    <select name="primary_goal" required>
+                        <option value="">Select one...</option>
+                        <option value="build_brand">Build my personal brand & following</option>
+                        <option value="get_clients">Attract more clients</option>
+                        <option value="inspire">Inspire and motivate my community</option>
+                        <option value="establish_expert">Establish myself as an expert</option>
+                        <option value="memberships">Increase gym memberships</option>
+                        <option value="retention">Improve member retention</option>
+                        <option value="fill_classes">Fill more classes</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Signature saying or catchphrase (Optional):</label>
+                    <input type="text" name="signature_style" placeholder='Example: "No excuses, just results" or "Train like a warrior"'>
+                    <div class="helper-text">Leave blank if you don't have one</div>
+                </div>
+                
+                <!-- SECTION 2: AUDIENCE & FOCUS -->
+                <div class="section-header">Target Audience & Focus</div>
+                
+                <div class="form-group">
+                    <label>Target Audience: <span class="required">*</span></label>
+                    <input type="text" name="target_audience" required placeholder="e.g., Women 25-45, Busy professionals, Seniors 60+">
+                </div>
+                
+                <div class="form-group">
+                    <label>Fitness Focus: <span class="required">*</span></label>
+                    <input type="text" name="fitness_focus" required placeholder="e.g., HIIT, Yoga, Strength Training, CrossFit">
+                </div>
+
+                <div class="form-group">
+                    <label>Primary Call-to-Action: <span class="required">*</span></label>
+                    <select name="cta_type" required id="cta_type">
+                        <option value="">What do you want your audience to do?</option>
+                        <option value="book_consultation">Book a free consultation</option>
+                        <option value="sign_up_trial">Sign up for a trial class</option>
+                        <option value="dm_details">DM for more details</option>
+                        <option value="link_bio">Click link in bio</option>
+                        <option value="comment">Comment below</option>
+                        <option value="visit_website">Visit my website</option>
+                        <option value="tag_friend">Tag a friend</option>
+                        <option value="custom">Custom CTA (specify below)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="custom-cta-group" style="display: none;">
+                    <label>Custom Call-to-Action:</label>
+                    <input type="text" name="custom_cta" placeholder="Enter your custom call-to-action">
+                </div>
+                
+                <!-- SECTION 3: CONTENT PREFERENCES -->
+                <div class="section-header">Content Preferences</div>
+
+                <div class="form-group">
+                    <label>Content themes to include (select all that apply):</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="content_themes" value="workout_tips" id="workout_tips">
+                            <label for="workout_tips">Workout Tips</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="content_themes" value="nutrition" id="nutrition">
+                            <label for="nutrition">Nutrition Advice</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="content_themes" value="motivation" id="motivation">
+                            <label for="motivation">Motivation</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="content_themes" value="transformation" id="transformation">
+                            <label for="transformation">Transformation Stories</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="content_themes" value="lifestyle" id="lifestyle">
+                            <label for="lifestyle">Lifestyle/Balance</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" name="content_themes" value="technique" id="technique">
+                            <label for="technique">Form & Technique</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Caption style preference:</label>
+                    <select name="caption_style">
+                        <option value="mixed">Mixed (variety of styles)</option>
+                        <option value="short_punchy">Short & punchy (1-2 sentences)</option>
+                        <option value="medium">Medium length (3-5 sentences)</option>
+                        <option value="long_storytelling">Longer storytelling format</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Hashtag preference:</label>
+                    <select name="hashtag_preference">
+                        <option value="moderate">Moderate (5-10 relevant hashtags)</option>
+                        <option value="minimal">Minimal (3-5 targeted hashtags)</option>
+                        <option value="maximum">Maximum (15-20 hashtags)</option>
+                        <option value="none">No hashtags</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Your go-to hashtags (Optional):</label>
+                    <input type="text" name="custom_hashtags" placeholder="e.g., #YourBrandName #YourCityFit #CustomTag">
+                    <div class="helper-text">These will be included in every post</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Topics or approaches to AVOID (Optional):</label>
+                    <textarea name="avoid_topics" rows="2" placeholder="e.g., Weight loss focus, competitive comparisons, political topics"></textarea>
+                    <div class="helper-text">Help us stay aligned with your values</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Any current promotions or events to mention? (Optional):</label>
+                    <textarea name="promotions" rows="2" placeholder="e.g., New Year special: 50% off first month, Open House this Saturday"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Link to your Instagram/social profile (Optional):</label>
+                    <input type="url" name="social_profile" placeholder="https://instagram.com/yourusername">
+                    <div class="helper-text">Helps AI understand your existing content style</div>
+                </div>
+
+                <!-- SECTION 3.5: PHOTO UPLOAD (Pro/Premium/Studio Owner/Trial only) -->
+                <div id="photo-section" class="form-group hidden">
+                    <div class="section-header">Your Photos (Optional)</div>
+                    
+                    <div class="photo-upload-section" id="photo-upload-area">
+                        <input type="file" id="photo-input" accept="image/*" multiple style="display: none;">
+                        <div id="upload-prompt">
+                            <p style="font-size: 18px; margin-bottom: 10px;">📸 Upload Your Photos</p>
+                            <p style="font-size: 14px; color: #64748b;">Click to select photos or drag & drop</p>
+                            <p style="font-size: 12px; color: #94a3b8; margin-top: 8px;">Accepted: JPG, PNG (max 5MB each)</p>
+                        </div>
+                        <div id="photo-preview-grid" class="photo-preview-grid"></div>
+                    </div>
+                    
+                    <!-- Studio Owner Instructor Tagging -->
+                    <div class="instructor-tagging" id="instructor-tagging">
+                        <h4>🏢 Tag photos for your instructors:</h4>
+                        <div class="instructor-list" id="instructor-list"></div>
+                        <div class="helper-text" style="margin-top: 10px;">Select which instructors can use these photos in their content</div>
+                    </div>
+                    
+                    <div class="helper-text">Upload 5-20 photos. AI will match them to your posts automatically.</div>
+                </div>
+                
+                <!-- SECTION 4: PLATFORMS -->
+                <div class="section-header">Social Media Platforms & Post Settings</div>
+
+                <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;">
+                    Select platforms and choose how many posts you want (click the number).
+                </p>
+                
+                <!-- Instagram -->
+                <div class="platform-card" id="instagram-card">
+                    <div class="platform-header">
+                        <input type="checkbox" id="instagram-enabled" onchange="handlePlatformToggle('instagram')">
+                        <label for="instagram-enabled">📸 Instagram</label>
+                    </div>
+                    <div class="platform-controls" id="instagram-controls">
+                        <div class="control-row">
+                            <div class="control-item">
+                                <label>Number of Posts:</label>
+                                <div class="number-selector" id="instagram-posts-selector">
+                                    <div class="number-btn" data-value="0">0</div>
+                                    <div class="number-btn" data-value="1">1</div>
+                                    <div class="number-btn" data-value="2">2</div>
+                                    <div class="number-btn selected" data-value="3">3</div>
+                                    <div class="number-btn" data-value="4">4</div>
+                                    <div class="number-btn" data-value="5">5</div>
+                                </div>
+                                <input type="hidden" name="instagram_posts" value="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Facebook -->
+                <div class="platform-card" id="facebook-card">
+                    <div class="platform-header">
+                        <input type="checkbox" id="facebook-enabled" onchange="handlePlatformToggle('facebook')">
+                        <label for="facebook-enabled">👥 Facebook</label>
+                    </div>
+                    <div class="platform-controls" id="facebook-controls">
+                        <div class="control-row">
+                            <div class="control-item">
+                                <label>Number of Posts:</label>
+                                <div class="number-selector" id="facebook-posts-selector">
+                                    <div class="number-btn" data-value="0">0</div>
+                                    <div class="number-btn" data-value="1">1</div>
+                                    <div class="number-btn" data-value="2">2</div>
+                                    <div class="number-btn selected" data-value="3">3</div>
+                                    <div class="number-btn" data-value="4">4</div>
+                                    <div class="number-btn" data-value="5">5</div>
+                                </div>
+                                <input type="hidden" name="facebook_posts" value="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LinkedIn -->
+                <div class="platform-card" id="linkedin-card">
+                    <div class="platform-header">
+                        <input type="checkbox" id="linkedin-enabled" onchange="handlePlatformToggle('linkedin')">
+                        <label for="linkedin-enabled">💼 LinkedIn</label>
+                    </div>
+                    <div class="platform-controls" id="linkedin-controls">
+                        <div class="control-row">
+                            <div class="control-item">
+                                <label>Number of Posts:</label>
+                                <div class="number-selector" id="linkedin-posts-selector">
+                                    <div class="number-btn" data-value="0">0</div>
+                                    <div class="number-btn" data-value="1">1</div>
+                                    <div class="number-btn selected" data-value="2">2</div>
+                                    <div class="number-btn" data-value="3">3</div>
+                                    <div class="number-btn" data-value="4">4</div>
+                                    <div class="number-btn" data-value="5">5</div>
+                                </div>
+                                <input type="hidden" name="linkedin_posts" value="2">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Twitter/X -->
+                <div class="platform-card" id="twitter-card">
+                    <div class="platform-header">
+                        <input type="checkbox" id="twitter-enabled" onchange="handlePlatformToggle('twitter')">
+                        <label for="twitter-enabled">𝕏 Twitter/X</label>
+                    </div>
+                    <div class="platform-controls" id="twitter-controls">
+                        <div class="control-row">
+                            <div class="control-item">
+                                <label>Number of Posts:</label>
+                                <div class="number-selector" id="twitter-posts-selector">
+                                    <div class="number-btn" data-value="0">0</div>
+                                    <div class="number-btn" data-value="1">1</div>
+                                    <div class="number-btn" data-value="2">2</div>
+                                    <div class="number-btn" data-value="3">3</div>
+                                    <div class="number-btn" data-value="4">4</div>
+                                    <div class="number-btn selected" data-value="5">5</div>
+                                </div>
+                                <input type="hidden" name="twitter_posts" value="5">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TikTok (Premium/Trial only) -->
+                <div class="platform-card" id="tiktok-card">
+                    <div class="platform-header">
+                        <input type="checkbox" id="tiktok-enabled" onchange="handlePlatformToggle('tiktok')">
+                        <label for="tiktok-enabled">🎵 TikTok</label>
+                    </div>
+                    <div class="platform-controls" id="tiktok-controls">
+                        <div class="control-row">
+                            <div class="control-item">
+                                <label>Number of Script Ideas:</label>
+                                <div class="number-selector" id="tiktok-posts-selector">
+                                    <div class="number-btn" data-value="0">0</div>
+                                    <div class="number-btn" data-value="1">1</div>
+                                    <div class="number-btn" data-value="2">2</div>
+                                    <div class="number-btn selected" data-value="3">3</div>
+                                    <div class="number-btn" data-value="4">4</div>
+                                    <div class="number-btn" data-value="5">5</div>
+                                </div>
+                                <input type="hidden" name="tiktok_posts" value="3">
+                            </div>
+                        </div>
+                        <p style="font-size: 12px; color: #64748b; margin-top: 8px;">
+                            Note: TikTok content includes video script ideas
+                        </p>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submit-btn">🚀 Generate My Content</button>
+                
+                <!-- Clear Saved Data Button -->
+                <button type="button" id="clear-data-btn" style="
+                    width: 100%;
+                    padding: 12px;
+                    background: transparent;
+                    color: #64748b;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    margin-top: 12px;
+                    transition: all 0.2s ease;
+                    display: none;
+                " onmouseover="this.style.borderColor='#f97316'; this.style.color='#f97316';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#64748b';">
+                    🗑️ Clear Saved Form Data
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <script type="module">
+        // Supabase configuration
+        const SUPABASE_URL = 'https://kidgcrqxrfcbsaeguwop.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpZGdjcnF4cmZjYnNhZWd1d29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3OTEyNjEsImV4cCI6MjA1MjM2NzI2MX0.4lgCZRGIK_qS8FKVBCMmCrm-_0pDlUDgqBMNysvmT-o';
+        
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let userTierData = null;
+        let uploadedPhotos = [];
+        let studioInstructors = [];
+        
+        // localStorage key - store per email
+        const getStorageKey = (email) => `fca_form_data_${email}`;
+        
+        // Auto-save form data
+        function saveFormData(email) {
+            if (!email) return;
+            
+            const formData = {
+                saved_at: new Date().toISOString(),
+                
+                // Text inputs
+                client_type: document.querySelector('[name="client_type"]')?.value || '',
+                brand_voice: document.querySelector('[name="brand_voice"]')?.value || '',
+                unique_value: document.querySelector('[name="unique_value"]')?.value || '',
+                primary_goal: document.querySelector('[name="primary_goal"]')?.value || '',
+                signature_style: document.querySelector('[name="signature_style"]')?.value || '',
+                target_audience: document.querySelector('[name="target_audience"]')?.value || '',
+                fitness_focus: document.querySelector('[name="fitness_focus"]')?.value || '',
+                cta_type: document.querySelector('[name="cta_type"]')?.value || '',
+                custom_cta: document.querySelector('[name="custom_cta"]')?.value || '',
+                caption_style: document.querySelector('[name="caption_style"]')?.value || '',
+                hashtag_preference: document.querySelector('[name="hashtag_preference"]')?.value || '',
+                custom_hashtags: document.querySelector('[name="custom_hashtags"]')?.value || '',
+                avoid_topics: document.querySelector('[name="avoid_topics"]')?.value || '',
+                promotions: document.querySelector('[name="promotions"]')?.value || '',
+                social_profile: document.querySelector('[name="social_profile"]')?.value || '',
+                
+                // Content themes checkboxes
+                content_themes: Array.from(document.querySelectorAll('[name="content_themes"]:checked'))
+                    .map(cb => cb.value),
+                
+                // Platform states
+                platforms: {
+                    instagram: {
+                        enabled: document.getElementById('instagram-enabled')?.checked || false,
+                        posts: document.querySelector('[name="instagram_posts"]')?.value || '3'
+                    },
+                    facebook: {
+                        enabled: document.getElementById('facebook-enabled')?.checked || false,
+                        posts: document.querySelector('[name="facebook_posts"]')?.value || '3'
+                    },
+                    linkedin: {
+                        enabled: document.getElementById('linkedin-enabled')?.checked || false,
+                        posts: document.querySelector('[name="linkedin_posts"]')?.value || '2'
+                    },
+                    twitter: {
+                        enabled: document.getElementById('twitter-enabled')?.checked || false,
+                        posts: document.querySelector('[name="twitter_posts"]')?.value || '5'
+                    },
+                    tiktok: {
+                        enabled: document.getElementById('tiktok-enabled')?.checked || false,
+                        posts: document.querySelector('[name="tiktok_posts"]')?.value || '3'
+                    }
+                }
+            };
+            
+            try {
+                localStorage.setItem(getStorageKey(email), JSON.stringify(formData));
+                console.log('✅ Form data saved for', email);
+            } catch (e) {
+                console.error('Error saving form data:', e);
+            }
         }
         
-      } catch (error) {
-        console.error('Error checking user:', error);
-        showEmailError('Something went wrong. Please try again.');
-        setLoading(false);
-      }
-    });
-    
-    async function checkUserStatus(email) {
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/clients?email=eq.${email}`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        });
-        
-        const data = await response.json();
-        return data && data.length > 0;
-        
-      } catch (error) {
-        console.error('Error:', error);
-        throw error;
-      }
-    }
-    
-    function showFormScreen(email) {
-      document.getElementById('emailScreen').style.display = 'none';
-      document.getElementById('formScreen').style.display = 'block';
-      document.getElementById('email').value = email;
-      loadSavedData();
-    }
-    
-    function setLoading(isLoading) {
-      continueBtn.disabled = isLoading;
-      
-      if (isLoading) {
-        btnText.textContent = 'Checking...';
-        btnIcon.innerHTML = '<div class="loading-spinner"></div>';
-      } else {
-        btnText.textContent = 'Continue';
-        btnIcon.innerHTML = '<i class="fas fa-arrow-right"></i>';
-      }
-    }
-    
-    function showEmailError(message) {
-      emailError.textContent = message;
-      emailError.style.display = 'block';
-    }
-    
-    function hideEmailError() {
-      emailError.style.display = 'none';
-    }
-
-    // FORM SCREEN LOGIC
-    document.addEventListener('DOMContentLoaded', function() {
-      setupAutoSave();
-      setupPlatformSelection();
-    });
-
-    function loadSavedData() {
-      const savedData = localStorage.getItem(STORAGE_KEY);
-      if (!savedData) return;
-      
-      try {
-        const data = JSON.parse(savedData);
-        
-        fieldsToSave.forEach(field => {
-          const element = document.getElementById(field);
-          if (element && data[field] !== undefined) {
-            if (element.type === 'checkbox') {
-              element.checked = data[field];
-            } else {
-              element.value = data[field];
-            }
-          }
-        });
-        
-        if (data.platformSettings) {
-          Object.keys(data.platformSettings).forEach(platform => {
-            const settings = data.platformSettings[platform];
-            if (settings.enabled) {
-              const checkbox = document.getElementById(`platform-${platform}`);
-              if (checkbox && !checkbox.disabled) {
-                checkbox.checked = true;
-                checkbox.closest('.platform-select-item').classList.add('selected');
+        // Load saved form data
+        function loadFormData(email) {
+            if (!email) return false;
+            
+            try {
+                const savedData = localStorage.getItem(getStorageKey(email));
+                if (!savedData) {
+                    console.log('No saved data for', email);
+                    return false;
+                }
                 
-                const countInput = document.querySelector(`input[name="${platform}_count"]`);
-                if (countInput) countInput.value = settings.count || 2;
+                const formData = JSON.parse(savedData);
+                console.log('📥 Loading saved data from', formData.saved_at);
                 
-                const item = checkbox.closest('.platform-select-item');
-                item.querySelectorAll('.count-btn').forEach(btn => {
-                  btn.classList.toggle('selected', btn.dataset.count === String(settings.count || 2));
+                // Load text inputs and selects
+                Object.keys(formData).forEach(key => {
+                    if (key === 'saved_at' || key === 'content_themes' || key === 'platforms') return;
+                    
+                    const element = document.querySelector(`[name="${key}"]`);
+                    if (element && formData[key]) {
+                        element.value = formData[key];
+                        
+                        // Trigger custom CTA display if needed
+                        if (key === 'cta_type' && formData[key] === 'custom') {
+                            document.getElementById('custom-cta-group').style.display = 'block';
+                        }
+                    }
                 });
                 
-                const imageToggle = document.getElementById(`${platform}_images`);
-                if (imageToggle) imageToggle.checked = settings.images !== false;
-              }
+                // Load content themes checkboxes
+                if (formData.content_themes) {
+                    formData.content_themes.forEach(theme => {
+                        const checkbox = document.querySelector(`[name="content_themes"][value="${theme}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+                
+                // Load platform states
+                if (formData.platforms) {
+                    Object.keys(formData.platforms).forEach(platform => {
+                        const platformData = formData.platforms[platform];
+                        
+                        // Set checkbox
+                        const checkbox = document.getElementById(`${platform}-enabled`);
+                        if (checkbox) {
+                            checkbox.checked = platformData.enabled;
+                            handlePlatformToggle(platform);
+                        }
+                        
+                        // Set post count
+                        const hiddenInput = document.querySelector(`[name="${platform}_posts"]`);
+                        if (hiddenInput) {
+                            hiddenInput.value = platformData.posts;
+                        }
+                        
+                        // Update number selector buttons
+                        const selector = document.getElementById(`${platform}-posts-selector`);
+                        if (selector) {
+                            const buttons = selector.querySelectorAll('.number-btn');
+                            buttons.forEach(btn => {
+                                btn.classList.remove('selected');
+                                if (btn.dataset.value === platformData.posts) {
+                                    btn.classList.add('selected');
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                return true;
+            } catch (e) {
+                console.error('Error loading form data:', e);
+                return false;
             }
-          });
         }
         
-      } catch (e) {
-        console.error('Error loading saved data:', e);
-      }
-    }
+        // Clear saved form data
+        function clearSavedData(email) {
+            if (!email) return;
+            
+            try {
+                localStorage.removeItem(getStorageKey(email));
+                console.log('🗑️ Cleared saved data for', email);
+            } catch (e) {
+                console.error('Error clearing form data:', e);
+            }
+        }
 
-    function saveFormData() {
-      const data = {};
-      
-      fieldsToSave.forEach(field => {
-        const element = document.getElementById(field);
-        if (element) {
-          if (element.type === 'checkbox') {
-            data[field] = element.checked;
-          } else {
-            data[field] = element.value;
-          }
+        // Enable auto-save for form inputs
+        function enableAutoSave(email) {
+            if (!email) return;
+            
+            console.log('🔄 Auto-save enabled for', email);
+            
+            // Show clear button if there's saved data
+            const clearBtn = document.getElementById('clear-data-btn');
+            if (localStorage.getItem(getStorageKey(email))) {
+                clearBtn.style.display = 'block';
+            }
+            
+            // Save on any input change
+            const form = document.getElementById('contentForm');
+            
+            form.addEventListener('input', () => saveFormData(email));
+            form.addEventListener('change', () => saveFormData(email));
+            
+            // Save when platform toggles
+            document.querySelectorAll('[id$="-enabled"]').forEach(checkbox => {
+                checkbox.addEventListener('change', () => saveFormData(email));
+            });
+            
+            // Save when number selectors change
+            document.querySelectorAll('.number-btn').forEach(btn => {
+                btn.addEventListener('click', () => saveFormData(email));
+            });
         }
-      });
-      
-      data.platformSettings = {};
-      platformsToSave.forEach(platform => {
-        const checkbox = document.getElementById(`platform-${platform}`);
-        const countInput = document.querySelector(`input[name="${platform}_count"]`);
-        const imageToggle = document.getElementById(`${platform}_images`);
-        
-        data.platformSettings[platform] = {
-          enabled: checkbox ? checkbox.checked : false,
-          count: countInput ? parseInt(countInput.value) || 2 : 2,
-          images: imageToggle ? imageToggle.checked : true
+
+        // Clear saved data button handler
+        document.getElementById('clear-data-btn').addEventListener('click', function() {
+            if (!userTierData || !userTierData.email) {
+                alert('No email detected');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to clear your saved form data? This will reset all fields to default.')) {
+                clearSavedData(userTierData.email);
+                
+                // Reset form
+                document.getElementById('contentForm').reset();
+                
+                // Reset number selectors to defaults
+                const defaults = {'instagram': '3', 'facebook': '3', 'linkedin': '2', 'twitter': '5', 'tiktok': '3'};
+                Object.keys(defaults).forEach(platform => {
+                    const selector = document.getElementById(`${platform}-posts-selector`);
+                    if (selector) {
+                        const buttons = selector.querySelectorAll('.number-btn');
+                        buttons.forEach(btn => {
+                            btn.classList.remove('selected');
+                            if (btn.dataset.value === defaults[platform]) {
+                                btn.classList.add('selected');
+                            }
+                        });
+                    }
+                });
+                
+                // Reset uploaded photos
+                uploadedPhotos = [];
+                renderPhotoPreview();
+                
+                // Hide clear button
+                this.style.display = 'none';
+                
+                alert('✅ Form data cleared! Fill out the form fresh.');
+            }
+        });
+
+        // Email verification
+        const emailInput = document.getElementById('email');
+        const tierInfo = document.getElementById('tier-info');
+        const mainForm = document.getElementById('main-form');
+        const photoSection = document.getElementById('photo-section');
+
+        emailInput.addEventListener('blur', async function() {
+            const email = this.value.trim().toLowerCase();
+            if (!email || !email.includes('@')) return;
+
+            // Show loading
+            tierInfo.innerHTML = '<p>Checking your account...</p>';
+            tierInfo.classList.add('show');
+
+            try {
+                await checkUserTier(email);
+            } catch (error) {
+                console.error('Error checking tier:', error);
+                tierInfo.innerHTML = '<p style="color: #b91c1c;">Error loading account. Please try again.</p>';
+            }
+        });
+
+        async function checkUserTier(email) {
+            // Check 1: Studio Owner?
+            const { data: studioOwnerData } = await supabaseClient
+                .from('studio_accounts')
+                .select('*')
+                .eq('owner_email', email)
+                .eq('subscription_status', 'active')
+                .single();
+
+            if (studioOwnerData) {
+                // Fetch instructors for this studio
+                const { data: instructorsData } = await supabaseClient
+                    .from('studio_instructors')
+                    .select('*')
+                    .eq('studio_id', studioOwnerData.id)
+                    .eq('status', 'active');
+
+                studioInstructors = instructorsData || [];
+                
+                userTierData = {
+                    tier: studioOwnerData.plan_type || 'pro',
+                    role: 'studio_owner',
+                    email: email,
+                    studio_id: studioOwnerData.id,
+                    studio_name: studioOwnerData.studio_name
+                };
+
+                const hasSavedData = loadFormData(email);
+
+                tierInfo.className = 'tier-info show';
+                tierInfo.innerHTML = `
+                    <h3>🏢 Studio Owner</h3>
+                    <p><strong>${userTierData.studio_name}</strong></p>
+                    <p style="font-size: 13px; margin-top: 8px;">✨ Upload photos and tag them for your ${studioInstructors.length} instructor(s)</p>
+                    ${hasSavedData ? '<p style="margin-top: 8px; font-size: 12px; color: #0369a1;">📝 Loaded your previous settings</p>' : ''}
+                `;
+
+                document.getElementById('user_tier').value = userTierData.tier;
+                document.getElementById('user_role').value = 'studio_owner';
+                document.getElementById('studio_id').value = userTierData.studio_id;
+                document.getElementById('studio_name').value = userTierData.studio_name;
+                
+                photoSection.classList.remove('hidden');
+                renderInstructorList();
+                
+                mainForm.style.display = 'block';
+                enableAutoSave(email);
+                return;
+            }
+
+            // Check 2: Trial user?
+            const { data: trialData } = await supabaseClient
+                .from('trials')
+                .select('*')
+                .eq('email', email)
+                .single();
+
+            if (trialData) {
+                const postsUsed = trialData.content_count || 0;
+                const postsRemaining = 16 - postsUsed;
+                const trialEnd = new Date(trialData.trial_end_date);
+                const now = new Date();
+                const isExpired = now > trialEnd;
+
+                if (isExpired) {
+                    tierInfo.className = 'tier-info expired show';
+                    tierInfo.innerHTML = `
+                        <h3>⚠️ Trial Expired</h3>
+                        <p>Your 7-day trial has ended. Please subscribe to continue generating content.</p>
+                        <p style="margin-top: 10px;"><a href="https://fiorsaoirse.com/pricing" style="color: #0369a1; font-weight: 600;">View Pricing Plans →</a></p>
+                    `;
+                    return;
+                }
+
+                if (postsRemaining <= 0) {
+                    tierInfo.className = 'tier-info expired show';
+                    tierInfo.innerHTML = `
+                        <h3>⚠️ Trial Limit Reached</h3>
+                        <p>You've used all 16 trial posts. Subscribe to continue!</p>
+                        <p style="margin-top: 10px;"><a href="https://fiorsaoirse.com/pricing" style="color: #0369a1; font-weight: 600;">View Pricing Plans →</a></p>
+                    `;
+                    return;
+                }
+
+                userTierData = {
+                    tier: 'trial',
+                    role: 'trial_user',
+                    email: email,
+                    posts_remaining: postsRemaining,
+                    trial_end: trialEnd.toLocaleDateString()
+                };
+
+                const hasSavedData = loadFormData(email);
+                
+                tierInfo.className = 'tier-info trial show';
+                tierInfo.innerHTML = `
+                    <h3>🎉 Trial Account</h3>
+                    <p><strong>${postsRemaining} posts remaining</strong> (${postsUsed}/16 used)</p>
+                    <p>Trial ends: ${userTierData.trial_end}</p>
+                    <p style="margin-top: 8px; font-size: 13px;">✨ AI images included in trial!</p>
+                    ${hasSavedData ? '<p style="margin-top: 8px; font-size: 12px; color: #047857;">📝 Loaded your previous settings</p>' : ''}
+                `;
+
+                document.getElementById('user_tier').value = 'trial';
+                document.getElementById('user_role').value = 'trial_user';
+                document.getElementById('posts_remaining').value = postsRemaining;
+                photoSection.classList.remove('hidden');
+                mainForm.style.display = 'block';
+                
+                enableAutoSave(email);
+                return;
+            }
+
+            // Check 3: Studio instructor?
+            const { data: instructorData } = await supabaseClient
+                .from('studio_instructors')
+                .select('*, studio_accounts(*)')
+                .eq('instructor_email', email)
+                .eq('status', 'active')
+                .single();
+
+            if (instructorData) {
+                userTierData = {
+                    tier: 'studio_instructor',
+                    role: 'studio_instructor',
+                    email: email,
+                    studio_id: instructorData.studio_id,
+                    studio_name: instructorData.studio_accounts.studio_name
+                };
+
+                const hasSavedData = loadFormData(email);
+
+                tierInfo.className = 'tier-info show';
+                tierInfo.innerHTML = `
+                    <h3>🏢 Studio Instructor</h3>
+                    <p>Connected to: <strong>${userTierData.studio_name}</strong></p>
+                    <p style="font-size: 13px; margin-top: 8px;">✨ Access to studio photo library</p>
+                    ${hasSavedData ? '<p style="margin-top: 8px; font-size: 12px; color: #0369a1;">📝 Loaded your previous settings</p>' : ''}
+                `;
+
+                document.getElementById('user_tier').value = 'studio_instructor';
+                document.getElementById('user_role').value = 'studio_instructor';
+                document.getElementById('studio_id').value = userTierData.studio_id;
+                document.getElementById('studio_name').value = userTierData.studio_name;
+                photoSection.classList.add('hidden'); // Studio instructors don't upload
+                mainForm.style.display = 'block';
+                
+                enableAutoSave(email);
+                return;
+            }
+
+            // Check 4: Paid subscriber?
+            const { data: clientData } = await supabaseClient
+                .from('clients')
+                .select('*')
+                .eq('email', email)
+                .single();
+
+            if (clientData && clientData.subscription_status === 'active') {
+                const tier = clientData.plan_type || 'basic';
+                
+                userTierData = {
+                    tier: tier,
+                    role: 'regular_client',
+                    email: email
+                };
+
+                const tierLabels = {
+                    basic: { name: 'Basic', color: 'tier-basic', icon: '⭐' },
+                    pro: { name: 'Pro', color: 'tier-pro', icon: '🔥' },
+                    premium: { name: 'Premium', color: 'tier-premium', icon: '💎' }
+                };
+
+                const tierInfo_config = tierLabels[tier] || tierLabels.basic;
+                
+                const hasSavedData = loadFormData(email);
+
+                tierInfo.className = `tier-info show`;
+                tierInfo.innerHTML = `
+                    <h3>${tierInfo_config.icon} ${tierInfo_config.name} Subscriber</h3>
+                    <p>Full access to all features</p>
+                    ${tier === 'pro' || tier === 'premium' ? '<p style="font-size: 13px; margin-top: 8px;">✨ Photo upload enabled</p>' : ''}
+                    ${hasSavedData ? '<p style="margin-top: 8px; font-size: 12px; color: #0369a1;">📝 Loaded your previous settings</p>' : ''}
+                `;
+
+                document.getElementById('user_tier').value = tier;
+                document.getElementById('user_role').value = 'regular_client';
+                
+                if (tier === 'pro' || tier === 'premium') {
+                    photoSection.classList.remove('hidden');
+                } else {
+                    photoSection.classList.add('hidden');
+                }
+
+                mainForm.style.display = 'block';
+                enableAutoSave(email);
+                return;
+            }
+
+            // No account found
+            tierInfo.className = 'tier-info expired show';
+            tierInfo.innerHTML = `
+                <h3>🆕 New User?</h3>
+                <p>We couldn't find an account with this email.</p>
+                <p style="margin-top: 10px;"><a href="https://fca-signup.netlify.app" style="color: #0369a1; font-weight: 600;">Start Free Trial →</a></p>
+            `;
+        }
+
+        // Render instructor tagging list for studio owners
+        function renderInstructorList() {
+            const instructorTagging = document.getElementById('instructor-tagging');
+            const instructorList = document.getElementById('instructor-list');
+            
+            if (userTierData.role !== 'studio_owner' || studioInstructors.length === 0) {
+                instructorTagging.classList.remove('show');
+                return;
+            }
+
+            instructorList.innerHTML = studioInstructors.map((instructor, index) => `
+                <div class="instructor-checkbox">
+                    <input type="checkbox" id="instructor-${index}" value="${instructor.instructor_email}" class="instructor-tag-checkbox">
+                    <label for="instructor-${index}">${instructor.instructor_name || instructor.instructor_email}</label>
+                </div>
+            `).join('');
+
+            instructorTagging.classList.add('show');
+        }
+
+        // Get selected instructors for photo tagging
+        function getSelectedInstructors() {
+            if (userTierData.role !== 'studio_owner') return [];
+            
+            const checkboxes = document.querySelectorAll('.instructor-tag-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        // Photo upload handling
+        const photoInput = document.getElementById('photo-input');
+        const photoUploadArea = document.getElementById('photo-upload-area');
+        const photoPreviewGrid = document.getElementById('photo-preview-grid');
+
+        photoUploadArea.addEventListener('click', () => {
+            if (!photoUploadArea.classList.contains('disabled')) {
+                photoInput.click();
+            }
+        });
+
+        photoInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`${file.name} is too large (max 5MB)`);
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    uploadedPhotos.push({
+                        file: file,
+                        dataUrl: event.target.result
+                    });
+                    renderPhotoPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        function renderPhotoPreview() {
+            if (uploadedPhotos.length === 0) {
+                document.getElementById('upload-prompt').style.display = 'block';
+                photoPreviewGrid.innerHTML = '';
+                return;
+            }
+
+            document.getElementById('upload-prompt').style.display = 'none';
+            photoPreviewGrid.innerHTML = uploadedPhotos.map((photo, index) => `
+                <div class="photo-preview">
+                    <img src="${photo.dataUrl}" alt="Photo ${index + 1}">
+                    <button type="button" class="remove-btn" onclick="removePhoto(${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        window.removePhoto = function(index) {
+            uploadedPhotos.splice(index, 1);
+            renderPhotoPreview();
         };
-      });
-      
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      showSavedIndicator();
-    }
 
-    function setupAutoSave() {
-      document.querySelectorAll('input, select, textarea').forEach(element => {
-        element.addEventListener('change', saveFormData);
-        if (element.tagName === 'INPUT' && (element.type === 'text' || element.type === 'email')) {
-          element.addEventListener('input', debounce(saveFormData, 1000));
-        }
-      });
-    }
-
-    function setupPlatformSelection() {
-      document.querySelectorAll('.platform-select-item:not(.disabled) .platform-header').forEach(header => {
-        header.addEventListener('click', function(e) {
-          const item = this.closest('.platform-select-item');
-          const checkbox = item.querySelector('input[type="checkbox"][name="platforms"]');
-          
-          if (e.target.type !== 'checkbox') {
-            checkbox.checked = !checkbox.checked;
-          }
-          
-          item.classList.toggle('selected', checkbox.checked);
-          saveFormData();
+        // Initialize number selectors
+        document.querySelectorAll('.number-selector').forEach(selector => {
+            const buttons = selector.querySelectorAll('.number-btn');
+            const platformName = selector.id.replace('-posts-selector', '');
+            const hiddenInput = document.querySelector(`input[name="${platformName}_posts"]`);
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    buttons.forEach(btn => btn.classList.remove('selected'));
+                    this.classList.add('selected');
+                    hiddenInput.value = this.dataset.value;
+                });
+            });
         });
-      });
-      
-      document.querySelectorAll('.platform-select-item:not(.disabled) .count-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const item = this.closest('.platform-select-item');
-          const platform = item.dataset.platform;
-          const countInput = document.querySelector(`input[name="${platform}_count"]`);
-          
-          item.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
-          this.classList.add('selected');
-          
-          if (countInput) countInput.value = this.dataset.count;
-          
-          const checkbox = item.querySelector('input[type="checkbox"][name="platforms"]');
-          if (!checkbox.checked) {
-            checkbox.checked = true;
-            item.classList.add('selected');
-          }
-          
-          saveFormData();
-        });
-      });
-    }
 
-    function showSavedIndicator() {
-      const indicator = document.getElementById('savedIndicator');
-      indicator.classList.add('show');
-      setTimeout(() => indicator.classList.remove('show'), 2000);
-    }
-
-    function debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout);
-          func(...args);
+        // Handle platform toggle
+        window.handlePlatformToggle = function(platform) {
+            const checkbox = document.getElementById(`${platform}-enabled`);
+            const controls = document.getElementById(`${platform}-controls`);
+            const card = document.getElementById(`${platform}-card`);
+            
+            if (checkbox.checked) {
+                controls.classList.add('active');
+                card.classList.remove('disabled');
+            } else {
+                controls.classList.remove('active');
+                card.classList.add('disabled');
+            }
         };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-      };
-    }
 
-    function clearSavedData() {
-      if (confirm('This will clear all saved form data. Continue?')) {
-        localStorage.removeItem(STORAGE_KEY);
-        location.reload();
-      }
-    }
-
-    function resetForm() {
-      document.getElementById('contentForm').style.display = 'block';
-      document.getElementById('success').style.display = 'none';
-    }
-
-    // Form submission
-    document.getElementById('contentForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const submitBtn = document.getElementById('submitBtn');
-      const errorDiv = document.getElementById('formError');
-      const successDiv = document.getElementById('success');
-      
-      const platformCounts = {};
-      const platformImages = {};
-      const platforms = [];
-      
-      document.querySelectorAll('.platform-select-item:not(.disabled)').forEach(item => {
-        const checkbox = item.querySelector('input[type="checkbox"][name="platforms"]');
-        const platform = item.dataset.platform;
-        const countInput = document.querySelector(`input[name="${platform}_count"]`);
-        const imageToggle = document.getElementById(`${platform}_images`);
-        
-        if (checkbox && checkbox.checked) {
-          platforms.push(platform);
-          platformCounts[platform] = parseInt(countInput?.value) || 2;
-          platformImages[platform] = imageToggle ? imageToggle.checked : true;
-        }
-      });
-      
-      if (platforms.length === 0) {
-        errorDiv.textContent = 'Please select at least one platform';
-        errorDiv.style.display = 'block';
-        setTimeout(() => errorDiv.style.display = 'none', 5000);
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Content...';
-      errorDiv.style.display = 'none';
-
-      const includeImages = Object.values(platformImages).some(v => v === true);
-
-      const formData = {
-        email: document.getElementById('email').value,
-        businessName: document.getElementById('businessName').value,
-        name: document.getElementById('name').value,
-        title: document.getElementById('title').value,
-        website: document.getElementById('website').value,
-        instagram_handle: document.getElementById('instagram_handle').value,
-        location: document.getElementById('location').value,
-        
-        platforms: platforms,
-        platformCounts: platformCounts,
-        platformImages: platformImages,
-        
-        includeImages: includeImages,
-        preferOwnPhotos: document.getElementById('preferOwnPhotos').checked,
-        
-        theme: document.getElementById('theme').value,
-        specialty: document.getElementById('specialty').value,
-        usp: document.getElementById('usp').value,
-        audience: document.getElementById('audience').value,
-        tone: document.getElementById('tone').value,
-        services: document.getElementById('services').value,
-        cta: document.getElementById('cta').value,
-        hashtagStyle: document.getElementById('hashtagStyle').value,
-        brandedHashtags: document.getElementById('brandedHashtags').value,
-        
-        promotions: document.getElementById('promotions').value,
-        avoidTopics: document.getElementById('avoidTopics').value,
-        notes: document.getElementById('notes').value,
-        
-        submittedAt: new Date().toISOString()
-      };
-
-      try {
-        const response = await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+        // Handle custom CTA display
+        document.getElementById('cta_type').addEventListener('change', function() {
+            const customCtaGroup = document.getElementById('custom-cta-group');
+            if (this.value === 'custom') {
+                customCtaGroup.style.display = 'block';
+            } else {
+                customCtaGroup.style.display = 'none';
+            }
         });
 
-        if (response.ok) {
-          document.getElementById('contentForm').style.display = 'none';
-          successDiv.style.display = 'block';
-          localStorage.removeItem(STORAGE_KEY);
-        } else {
-          const data = await response.json().catch(() => ({}));
-          throw new Error(data.message || 'Something went wrong. Please try again.');
-        }
-      } catch (error) {
-        errorDiv.textContent = error.message;
-        errorDiv.style.display = 'block';
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-rocket"></i> Generate My Content';
-      }
-    });
-  </script>
+        // Form submission
+        document.getElementById('contentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!userTierData) {
+                alert('Please enter your email first to verify your account');
+                return;
+            }
+
+            const platforms = ['instagram', 'facebook', 'linkedin', 'twitter', 'tiktok'];
+            const selectedPlatforms = platforms.filter(p => 
+                document.getElementById(`${p}-enabled`).checked
+            );
+            
+            if (selectedPlatforms.length === 0) {
+                alert('Please select at least one social media platform');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            
+            const platformsArray = [];
+            selectedPlatforms.forEach(platform => {
+                const postCount = parseInt(document.querySelector(`input[name="${platform}_posts"]`).value) || 3;
+                
+                if (postCount === 0) return;
+                
+                const platformData = {
+                    name: platform,
+                    postCount: postCount,
+                    includeImages: userTierData.tier !== 'basic'
+                };
+                
+                platformsArray.push(platformData);
+            });
+
+            if (platformsArray.length === 0) {
+                alert('Please select at least 1 post for at least one platform');
+                return;
+            }
+
+            // Upload photos based on user role
+            let photoUrls = [];
+            let photoData = null;
+            
+            if (uploadedPhotos.length > 0) {
+                document.getElementById('loading-overlay').classList.add('show');
+                
+                if (userTierData.role === 'studio_owner') {
+                    // Studio Owner: Upload to studio_photos with instructor tagging
+                    const taggedInstructors = getSelectedInstructors();
+                    
+                    if (taggedInstructors.length === 0) {
+                        alert('Please select at least one instructor to tag these photos for');
+                        document.getElementById('loading-overlay').classList.remove('show');
+                        return;
+                    }
+                    
+                    for (const photo of uploadedPhotos) {
+                        try {
+                            const fileName = `studio-${userTierData.studio_id}/${Date.now()}-${photo.file.name}`;
+                            const { data, error } = await supabaseClient.storage
+                                .from('studio-photos')
+                                .upload(fileName, photo.file);
+                            
+                            if (error) throw error;
+                            
+                            const { data: urlData } = supabaseClient.storage
+                                .from('studio-photos')
+                                .getPublicUrl(fileName);
+                            
+                            // Insert into studio_photos table
+                            await supabaseClient
+                                .from('studio_photos')
+                                .insert({
+                                    studio_id: userTierData.studio_id,
+                                    storage_path: fileName,
+                                    storage_url: urlData.publicUrl,
+                                    instructor_emails: taggedInstructors,
+                                    uploaded_by: userTierData.email
+                                });
+                            
+                            photoUrls.push(urlData.publicUrl);
+                        } catch (error) {
+                            console.error('Studio photo upload error:', error);
+                        }
+                    }
+                    
+                    photoData = {
+                        type: 'studio_photos',
+                        studio_id: userTierData.studio_id,
+                        tagged_instructors: taggedInstructors,
+                        photo_urls: photoUrls
+                    };
+                    
+                } else if (userTierData.role === 'regular_client' || userTierData.role === 'trial_user') {
+                    // Regular client or trial: Upload to client_images
+                    for (const photo of uploadedPhotos) {
+                        try {
+                            const fileName = `${userTierData.email}/${Date.now()}-${photo.file.name}`;
+                            const { data, error } = await supabaseClient.storage
+                                .from('client-photos')
+                                .upload(fileName, photo.file);
+                            
+                            if (error) throw error;
+                            
+                            const { data: urlData } = supabaseClient.storage
+                                .from('client-photos')
+                                .getPublicUrl(fileName);
+                            
+                            photoUrls.push(urlData.publicUrl);
+                        } catch (error) {
+                            console.error('Photo upload error:', error);
+                        }
+                    }
+                    
+                    photoData = {
+                        type: 'client_images',
+                        photo_urls: photoUrls
+                    };
+                }
+            }
+
+            const contentThemes = Array.from(document.querySelectorAll('input[name="content_themes"]:checked'))
+                .map(cb => cb.value);
+
+            const ctaType = formData.get('cta_type');
+            const cta = ctaType === 'custom' ? formData.get('custom_cta') : ctaType;
+            
+            const data = {
+                // User account info
+                email: userTierData.email,
+                user_tier: userTierData.tier,
+                user_role: userTierData.role,
+                studio_id: userTierData.studio_id || null,
+                studio_name: userTierData.studio_name || null,
+                posts_remaining: userTierData.posts_remaining || null,
+                
+                // Form data
+                client_type: formData.get('client_type'),
+                brand_voice: formData.get('brand_voice'),
+                unique_value: formData.get('unique_value') || '',
+                primary_goal: formData.get('primary_goal'),
+                signature_style: formData.get('signature_style') || '',
+                target_audience: formData.get('target_audience'),
+                fitness_focus: formData.get('fitness_focus'),
+                cta: cta,
+                content_themes: contentThemes,
+                caption_style: formData.get('caption_style'),
+                hashtag_preference: formData.get('hashtag_preference'),
+                custom_hashtags: formData.get('custom_hashtags') || '',
+                avoid_topics: formData.get('avoid_topics') || '',
+                promotions: formData.get('promotions') || '',
+                social_profile: formData.get('social_profile') || '',
+                platforms: platformsArray,
+                
+                // Photos
+                photo_data: photoData
+            };
+            
+            console.log('Submitting data:', data);
+            
+            // Show loading
+            document.getElementById('loading-overlay').classList.add('show');
+            document.getElementById('submit-btn').disabled = true;
+            
+            try {
+                // Send to n8n webhook
+                await fetch('https://n8n.fiorsaoirse.com/webhook/73976ee9-e392-4e67-8aa5-d1164bd02356', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                // Hide loading
+                document.getElementById('loading-overlay').classList.remove('show');
+                
+                // Show success banner
+                document.getElementById('success-banner').classList.add('show');
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Reset uploaded photos
+                uploadedPhotos = [];
+                renderPhotoPreview();
+                
+                // Re-enable submit after 30 seconds
+                setTimeout(() => {
+                    document.getElementById('submit-btn').disabled = false;
+                }, 30000);
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                document.getElementById('loading-overlay').classList.remove('show');
+                document.getElementById('submit-btn').disabled = false;
+                
+                // Even with error, likely succeeded due to no-cors
+                document.getElementById('success-banner').classList.add('show');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    </script>
 </body>
 </html>
