@@ -735,6 +735,7 @@
             <div class="tier-info" id="tier-info"></div>
 
             <!-- Hidden fields for tier data -->
+            <input type="hidden" name="client_id" id="client_id">
             <input type="hidden" name="user_tier" id="user_tier">
             <input type="hidden" name="user_role" id="user_role">
             <input type="hidden" name="studio_id" id="studio_id">
@@ -1411,6 +1412,7 @@
                     tier: studioOwnerData.plan_type || 'pro',
                     role: 'studio_owner',
                     email: email,
+                    client_id: studioOwnerData.id, // ADD STUDIO ACCOUNT ID
                     studio_id: studioOwnerData.id,
                     studio_name: studioOwnerData.studio_name
                 };
@@ -1425,6 +1427,7 @@
                     ${hasSavedData ? '<p style="margin-top: 8px; font-size: 12px; color: #0369a1;">📝 Loaded your previous settings</p>' : ''}
                 `;
 
+                document.getElementById('client_id').value = userTierData.client_id;
                 document.getElementById('user_tier').value = userTierData.tier;
                 document.getElementById('user_role').value = 'studio_owner';
                 document.getElementById('studio_id').value = userTierData.studio_id;
@@ -1476,6 +1479,7 @@
                     tier: 'trial',
                     role: 'trial_user',
                     email: email,
+                    client_id: trialData.id, // ADD TRIAL ID
                     posts_remaining: postsRemaining,
                     trial_end: trialEnd.toLocaleDateString()
                 };
@@ -1491,6 +1495,7 @@
                     ${hasSavedData ? '<p style="margin-top: 8px; font-size: 12px; color: #047857;">📝 Loaded your previous settings</p>' : ''}
                 `;
 
+                document.getElementById('client_id').value = userTierData.client_id;
                 document.getElementById('user_tier').value = 'trial';
                 document.getElementById('user_role').value = 'trial_user';
                 document.getElementById('posts_remaining').value = postsRemaining;
@@ -1514,6 +1519,7 @@
                     tier: 'studio_instructor',
                     role: 'studio_instructor',
                     email: email,
+                    client_id: instructorData.id, // ADD INSTRUCTOR ID
                     studio_id: instructorData.studio_id,
                     studio_name: instructorData.studio_accounts.studio_name
                 };
@@ -1528,6 +1534,7 @@
                     ${hasSavedData ? '<p style="margin-top: 8px; font-size: 12px; color: #0369a1;">📝 Loaded your previous settings</p>' : ''}
                 `;
 
+                document.getElementById('client_id').value = userTierData.client_id;
                 document.getElementById('user_tier').value = 'studio_instructor';
                 document.getElementById('user_role').value = 'studio_instructor';
                 document.getElementById('studio_id').value = userTierData.studio_id;
@@ -1552,7 +1559,8 @@
                 userTierData = {
                     tier: tier,
                     role: 'regular_client',
-                    email: email
+                    email: email,
+                    client_id: clientData.id // ADD CLIENT ID
                 };
 
                 const tierLabels = {
@@ -1573,6 +1581,7 @@
                     ${hasSavedData ? '<p style="margin-top: 8px; font-size: 12px; color: #0369a1;">📝 Loaded your previous settings</p>' : ''}
                 `;
 
+                document.getElementById('client_id').value = userTierData.client_id;
                 document.getElementById('user_tier').value = tier;
                 document.getElementById('user_role').value = 'regular_client';
                 
@@ -1848,6 +1857,7 @@
             const data = {
                 // User account info
                 email: userTierData.email,
+                client_id: userTierData.client_id || null,
                 user_tier: userTierData.tier,
                 user_role: userTierData.role,
                 studio_id: userTierData.studio_id || null,
