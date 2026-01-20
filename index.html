@@ -970,6 +970,16 @@
                                 </div>
                                 <input type="hidden" name="instagram_posts" value="3">
                             </div>
+                            <div class="control-item" style="margin-top: 12px;">
+                                <label>Include Images:</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+                                    <label class="toggle-switch" style="margin: 0;">
+                                        <input type="checkbox" name="instagram_images" id="instagram_images" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span style="font-size: 13px; color: #64748b;" id="instagram-image-label">Images ON</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -993,6 +1003,16 @@
                                     <div class="number-btn" data-value="5">5</div>
                                 </div>
                                 <input type="hidden" name="facebook_posts" value="3">
+                            </div>
+                            <div class="control-item" style="margin-top: 12px;">
+                                <label>Include Images:</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+                                    <label class="toggle-switch" style="margin: 0;">
+                                        <input type="checkbox" name="facebook_images" id="facebook_images" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span style="font-size: 13px; color: #64748b;" id="facebook-image-label">Images ON</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1018,6 +1038,16 @@
                                 </div>
                                 <input type="hidden" name="linkedin_posts" value="2">
                             </div>
+                            <div class="control-item" style="margin-top: 12px;">
+                                <label>Include Images:</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+                                    <label class="toggle-switch" style="margin: 0;">
+                                        <input type="checkbox" name="linkedin_images" id="linkedin_images">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span style="font-size: 13px; color: #64748b;" id="linkedin-image-label">Images OFF</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1041,6 +1071,16 @@
                                     <div class="number-btn selected" data-value="5">5</div>
                                 </div>
                                 <input type="hidden" name="twitter_posts" value="5">
+                            </div>
+                            <div class="control-item" style="margin-top: 12px;">
+                                <label>Include Images:</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+                                    <label class="toggle-switch" style="margin: 0;">
+                                        <input type="checkbox" name="twitter_images" id="twitter_images">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span style="font-size: 13px; color: #64748b;" id="twitter-image-label">Images OFF</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1146,23 +1186,28 @@
                 platforms: {
                     instagram: {
                         enabled: document.getElementById('instagram-enabled')?.checked || false,
-                        posts: document.querySelector('[name="instagram_posts"]')?.value || '3'
+                        posts: document.querySelector('[name="instagram_posts"]')?.value || '3',
+                        images: document.getElementById('instagram_images')?.checked ?? true
                     },
                     facebook: {
                         enabled: document.getElementById('facebook-enabled')?.checked || false,
-                        posts: document.querySelector('[name="facebook_posts"]')?.value || '3'
+                        posts: document.querySelector('[name="facebook_posts"]')?.value || '3',
+                        images: document.getElementById('facebook_images')?.checked ?? true
                     },
                     linkedin: {
                         enabled: document.getElementById('linkedin-enabled')?.checked || false,
-                        posts: document.querySelector('[name="linkedin_posts"]')?.value || '2'
+                        posts: document.querySelector('[name="linkedin_posts"]')?.value || '2',
+                        images: document.getElementById('linkedin_images')?.checked ?? false
                     },
                     twitter: {
                         enabled: document.getElementById('twitter-enabled')?.checked || false,
-                        posts: document.querySelector('[name="twitter_posts"]')?.value || '5'
+                        posts: document.querySelector('[name="twitter_posts"]')?.value || '5',
+                        images: document.getElementById('twitter_images')?.checked ?? false
                     },
                     tiktok: {
                         enabled: document.getElementById('tiktok-enabled')?.checked || false,
-                        posts: document.querySelector('[name="tiktok_posts"]')?.value || '3'
+                        posts: document.querySelector('[name="tiktok_posts"]')?.value || '3',
+                        images: false
                     }
                 }
             };
@@ -1236,6 +1281,17 @@
                         const hiddenInput = document.querySelector(`[name="${platform}_posts"]`);
                         if (hiddenInput) {
                             hiddenInput.value = platformData.posts;
+                        }
+                        
+                        // Set image toggle
+                        const imageToggle = document.getElementById(`${platform}_images`);
+                        if (imageToggle && platformData.images !== undefined) {
+                            imageToggle.checked = platformData.images;
+                            // Update label
+                            const label = document.getElementById(`${platform}-image-label`);
+                            if (label) {
+                                label.textContent = platformData.images ? 'Images ON' : 'Images OFF';
+                            }
                         }
                         
                         // Update number selector buttons
@@ -1321,6 +1377,8 @@
                 
                 // Reset number selectors to defaults
                 const defaults = {'instagram': '3', 'facebook': '3', 'linkedin': '2', 'twitter': '5', 'tiktok': '3'};
+                const imageDefaults = {'instagram': true, 'facebook': true, 'linkedin': false, 'twitter': false, 'tiktok': false};
+                
                 Object.keys(defaults).forEach(platform => {
                     const selector = document.getElementById(`${platform}-posts-selector`);
                     if (selector) {
@@ -1331,6 +1389,16 @@
                                 btn.classList.add('selected');
                             }
                         });
+                    }
+                    
+                    // Reset image toggles
+                    const imageToggle = document.getElementById(`${platform}_images`);
+                    if (imageToggle) {
+                        imageToggle.checked = imageDefaults[platform];
+                        const label = document.getElementById(`${platform}-image-label`);
+                        if (label) {
+                            label.textContent = imageDefaults[platform] ? 'Images ON' : 'Images OFF';
+                        }
                     }
                 });
                 
@@ -1400,8 +1468,6 @@
                 .eq('email', email)
                 .single();
 
-            console.log('DEBUG - clientData from Supabase:', clientData);
-
             if (!clientData) {
                 // No account found
                 tierInfo.className = 'tier-info expired show';
@@ -1424,8 +1490,6 @@
                 .eq('subscription_status', 'active')
                 .single();
 
-            console.log('DEBUG - studioOwnerData from Supabase:', studioOwnerData);
-
             if (studioOwnerData) {
                 // Fetch instructors for this studio
                 const { data: instructorsData } = await supabaseClient
@@ -1444,8 +1508,6 @@
                     studio_id: studioOwnerData.id,
                     studio_name: studioOwnerData.studio_name
                 };
-
-                console.log('DEBUG - userTierData set for studio owner:', userTierData);
 
                 const hasSavedData = loadFormData(email);
 
@@ -1477,8 +1539,6 @@
                 .select('*')
                 .eq('email', email)
                 .single();
-
-            console.log('DEBUG - trialData from Supabase:', trialData);
 
             if (trialData) {
                 const postsUsed = trialData.content_count || 0;
@@ -1545,8 +1605,6 @@
                 .eq('instructor_email', email)
                 .eq('status', 'active')
                 .single();
-
-            console.log('DEBUG - instructorData from Supabase:', instructorData);
 
             if (instructorData) {
                 userTierData = {
@@ -1726,6 +1784,18 @@
                 });
             });
         });
+        
+        // Handle image toggle label updates
+        const platformImageToggles = ['instagram', 'facebook', 'linkedin', 'twitter'];
+        platformImageToggles.forEach(platform => {
+            const toggle = document.getElementById(`${platform}_images`);
+            const label = document.getElementById(`${platform}-image-label`);
+            if (toggle && label) {
+                toggle.addEventListener('change', function() {
+                    label.textContent = this.checked ? 'Images ON' : 'Images OFF';
+                });
+            }
+        });
 
         // Handle platform toggle
         window.handlePlatformToggle = function(platform) {
@@ -1779,10 +1849,13 @@
                 
                 if (postCount === 0) return;
                 
+                const imageToggle = document.getElementById(`${platform}_images`);
+                const includeImages = imageToggle ? imageToggle.checked : true;
+                
                 const platformData = {
                     name: platform,
                     postCount: postCount,
-                    includeImages: userTierData.tier !== 'basic'
+                    includeImages: includeImages
                 };
                 
                 platformsArray.push(platformData);
@@ -1917,10 +1990,6 @@
                 // Photos
                 photo_data: photoData
             };
-            
-            console.log('Submitting data:', data);
-            console.log('DEBUG - userTierData:', userTierData);
-            console.log('DEBUG - client_id being sent:', data.client_id);
             
             // Show loading
             document.getElementById('loading-overlay').classList.add('show');
